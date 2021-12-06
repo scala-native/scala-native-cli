@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Copy/pasted from https://github.com/scala-native/scala-native 
+
+set -e
+
+HERE="`dirname $0`"
+VERSION="3.2.1"
+COURSIER="$HERE/.coursier"
+SCALAFMT="$HERE/.scalafmt-$VERSION"
+
+if [ ! -f $COURSIER ]; then
+  curl -L -o $COURSIER https://git.io/coursier-cli
+  chmod +x $COURSIER
+fi
+
+if [ ! -f $SCALAFMT ]; then
+  $COURSIER bootstrap org.scalameta:scalafmt-cli_2.13:$VERSION -r sonatype:snapshots --main org.scalafmt.cli.Cli -o $SCALAFMT
+  chmod +x $SCALAFMT
+fi
+
+$SCALAFMT "$@"
