@@ -60,11 +60,12 @@ case class NativeConfigOptions(
       "Path to the `clang` executable. Internally discovered if not specified."
     )
     @ValueDescription("<path-to-clang>")
-    clang: Option[String],
+    clang: Option[String] = None,
     @Group("Native Config")
+    @Name("clang++")
     @HelpMessage(
       "Path to the `clang++` executable. Internally discovered if not specified."
     )
     @ValueDescription("<path-to-clang++>")
-    clangPP: Option[String]
+    clangPP: Option[String] = None
 )

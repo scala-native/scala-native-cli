@@ -1,6 +1,6 @@
 scalaVersion := "2.12.15"
 val nativeVersion = "0.4.1"
-val cliVersion = nativeVersion
+val cliVersion = nativeVersion + "-SNAPSHOT"
 
 inThisBuild(
   Def.settings(
@@ -10,16 +10,16 @@ inThisBuild(
 )
 
 lazy val cli = project
-  .in(file(s"cli/version_${nativeVersion}"))
+  .in(file(s"cli"))
   .settings(
     moduleName := "scala-native-cli",
     scalacOptions += "-Ywarn-unused:imports",
     libraryDependencies += "org.scala-native" %% "tools" % nativeVersion,
-    libraryDependencies += "com.github.alexarchambault" %% "case-app" % "2.1.0-M9",
+    libraryDependencies += "com.github.alexarchambault" %% "case-app" % "2.1.0-M10",
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
     assembly / assemblyJarName := "scala-native-cli.jar", // Used for integration tests.
-    Compile / unmanagedSourceDirectories += baseDirectory.value.getParentFile / "shared/src/main/scala",
-    Test / unmanagedSourceDirectories += baseDirectory.value.getParentFile / "shared/src/test/scala"
+    Compile / unmanagedSourceDirectories += baseDirectory.value / s"version_${nativeVersion}/src/main/scala",
+    Test / unmanagedSourceDirectories += baseDirectory.value / s"version_${nativeVersion}/src/test/scala"
   )
 
 // Meant to resolve classpath dependencies, provide compiled nir

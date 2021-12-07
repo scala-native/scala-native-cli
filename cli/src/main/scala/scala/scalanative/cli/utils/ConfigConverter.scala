@@ -3,44 +3,26 @@ package scala.scalanative.cli.utils
 import scala.scalanative.build.Config
 import scala.scalanative.build.NativeConfig
 import scala.scalanative.build.Discover
-import caseapp.core.app.CaseApp
 import java.nio.file.Paths
 import java.nio.file.Path
 import scala.util.Try
-import scala.scalanative.cli.options.NativeVersion
 import scala.scalanative.cli.options.CliOptions
-
-import scala.scalanative.cli.utils.NativeConfigParserImplicits._
 
 case class BuildOptions(
     config: Config,
     outpath: Path
 )
 
-object BuildOptionsParser {
+object ConfigConverter {
 
-  def apply(options: Array[String]): Either[Throwable, Option[BuildOptions]] = {
-    if (options.contains("--help") || options.contains("-h")) {
-      CaseApp.printHelp[CliOptions]()
-      Right(None)
-    } else if (options.contains("--version")) {
-      println(s"Version: ${NativeVersion.value}")
-      Right(None)
-    } else {
-      val remappedOptions = CaseApp
-        .parse[CliOptions](options)
-        .left
-        .map(error => new IllegalArgumentException(error.message))
-
-      remappedOptions.flatMap { case (options, _) =>
-        val cliOptions = options
-        val outpath = Paths.get(cliOptions.config.outpath)
-
-        generateConfig(cliOptions).map(config =>
-          Some(BuildOptions(config, outpath))
-        )
-      }
-    }
+  def convert(options: CliOptions, positionalArgs: Seq[String]): Either[Throwable, BuildOptions] = {
+    val main = positionalArgs.head
+    val classpath = positionalArgs.tail
+    generateConfig(options, main, classpath).flatMap(config =>
+      Try(Paths.get(options.config.outpath)).toEither.map(outpath =>
+        BuildOptions(config, outpath)
+      )
+    )
   }
 
   private def generateNativeConfig(
@@ -53,20 +35,6 @@ object BuildOptionsParser {
       Try {
         optPath.map(Paths.get(_)).getOrElse(discover)
       }.toEither
-
-    val clangEither = Try {
-      options.nativeConfig.clang match {
-        case Some(value) => Paths.get(value)
-        case None        => Discover.clang()
-      }
-    }.toEither
-
-    val clangPPEither = Try {
-      options.nativeConfig.clangPP match {
-        case Some(value) => Paths.get(value)
-        case None        => Discover.clangpp()
-      }
-    }.toEither
 
     for {
       clang <- toPathOrDiscover(options.nativeConfig.clang)(Discover.clang())
@@ -93,16 +61,16 @@ object BuildOptionsParser {
     } yield maybeNativeConfig
   }
 
-  private def generateConfig(options: CliOptions): Either[Throwable, Config] = {
+  private def generateConfig(options: CliOptions, main: String, classPath: Seq[String]): Either[Throwable, Config] = {
     for {
       nativeConfig <- generateNativeConfig(options)
-      classPath <- Try(parseClassPath(options.config.classPath)).toEither
+      classPath <- Try(parseClassPath(classPath)).toEither
     } yield {
       val config = Config.empty
-        .withClassPath(classPath)
-        .withMainClass(options.config.main)
         .withWorkdir(Paths.get(options.config.workdir).toAbsolutePath())
         .withCompilerConfig(nativeConfig)
+        .withClassPath(classPath)
+        .withMainClass(main)
       val logger =
         new FilteredLogger(
           logDebug = !options.logger.disableDebug,
@@ -112,9 +80,8 @@ object BuildOptionsParser {
         )
       config.withLogger(logger)
     }
-
   }
 
-  private def parseClassPath(classPath: String): Seq[Path] =
-    classPath.split(":").map(Paths.get(_))
+  private def parseClassPath(classPath: Seq[String]): Seq[Path] =
+    classPath.map(Paths.get(_))
 }

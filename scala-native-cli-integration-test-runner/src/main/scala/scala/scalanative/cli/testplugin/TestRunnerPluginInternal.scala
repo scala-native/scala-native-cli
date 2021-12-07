@@ -41,8 +41,7 @@ object TestRunnerPluginInternal {
         .command(
           List("java", "-jar", cliPath)
             .++(args.toList)
-            .++(List("--class-path"))
-            .++(List(classpath.mkString(":")))
+            .++(classpath.toList)
             .asJava
         )
 

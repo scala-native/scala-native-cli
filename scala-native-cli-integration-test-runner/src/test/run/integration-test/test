@@ -1,25 +1,31 @@
 > compile
 # -- Link and check if outpath exists
-> runTest --main Main$ --outpath target/out1 --disable-debug
+> runTest --outpath target/out1 --disable-debug Main$ 
 $ exists target/out1
-# -- Fail to link without all required options
+
+# -- Fail to link without main specified
 > runTest --outpath target/out2 --disable-debug
 -$ exists target/out2
+
 # -- Fail to link with an incorrect option
-> runTest --main Main$ --outpath target/out3 --disable-debug --gc fast
+> runTest --outpath target/out3 --disable-debug --gc fast Main$ 
 -$ exists target/out3
+
 # -- Fail to link with an unspecified option
-> runTest --main Main$ --outpath target/out4 --disable-debug --unspecified
+> runTest --outpath target/out4 --disable-debug --unspecified Main$ 
 -$ exists target/out4
+
 # -- Do not write nir files if not specified
-> runTest --main Main$ --outpath target/out5 --disable-debug
+> runTest --outpath target/out5 --disable-debug Main$ 
 -$ exists optimized.hnir
 $ exists target/out5
-# -- Write nir files to cwd if specified
+
+# -- Write nir files to workdir if specified
 $ mkdir native-dir
-> runTest --main Main$ --outpath target/out6 --disable-debug --workdir native-dir --dump
+> runTest --outpath target/out6 --disable-debug --workdir native-dir --dump Main$
 $ exists native-dir/optimized.hnir
 $ exists target/out6
+
 # -- Fail on an incorrect link-time property
-> runTest --main Main$ --outpath target/out7 --disable-debug --ltp key=ok
+> runTest --outpath target/out7 --disable-debug --ltp key=ok Main$
 -$ exists target/out7
