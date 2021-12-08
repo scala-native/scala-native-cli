@@ -9,7 +9,7 @@ case class NativeConfigOptions(
     @Group("Native Config")
     @HelpMessage("Scala Native compilation mode. [debug]")
     @ValueDescription("<mode> (debug, release-fast or release-full)")
-    nativeMode: Mode = Mode.debug,
+    mode: Mode = Mode.debug,
     @Group("Native Config")
     @HelpMessage("Link-time optimisation mode. [none]")
     @ValueDescription("<mode> (none, thin or full)")

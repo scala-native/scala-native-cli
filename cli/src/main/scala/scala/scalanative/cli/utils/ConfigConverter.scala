@@ -45,7 +45,7 @@ object ConfigConverter {
         .withVersionSpecificOptions(
           options,
           NativeConfig.empty
-            .withMode(options.nativeConfig.nativeMode)
+            .withMode(options.nativeConfig.mode)
             .withLTO(options.nativeConfig.lto)
             .withGC(options.nativeConfig.gc)
             .withLinkStubs(options.nativeConfig.linkStubs)

@@ -77,7 +77,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     def modeAssertion(modeString: String, expectedMode: Mode) = {
       val options = CliOptions(
         dummyConfigOptions,
-        NativeConfigOptions(nativeMode = NativeConfigParserImplicits.modeParser(None, modeString).right.get),
+        NativeConfigOptions(mode = NativeConfigParserImplicits.modeParser(None, modeString).right.get),
         dummyLoggerOptions
       )
       val config = ConfigConverter.convert(options, dummyArguments).right.get.config
