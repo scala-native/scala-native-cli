@@ -15,14 +15,25 @@ case class BuildOptions(
 
 object ConfigConverter {
 
-  def convert(options: CliOptions, positionalArgs: Seq[String]): Either[Throwable, BuildOptions] = {
-    val main = positionalArgs.head
-    val classpath = positionalArgs.tail
-    generateConfig(options, main, classpath).flatMap(config =>
-      Try(Paths.get(options.config.outpath)).toEither.map(outpath =>
-        BuildOptions(config, outpath)
+  def convert(
+      options: CliOptions,
+      positionalArgs: Seq[String]
+  ): Either[Throwable, BuildOptions] = {
+    if (positionalArgs.size < 2) {
+      Left(
+        new IllegalArgumentException(
+          "Not enough positional arguments. Main and at least one source file need to be specified."
+        )
       )
-    )
+    } else {
+      val main = positionalArgs.head
+      val classpath = positionalArgs.tail
+      generateConfig(options, main, classpath).flatMap(config =>
+        Try(Paths.get(options.config.outpath)).toEither.map(outpath =>
+          BuildOptions(config, outpath)
+        )
+      )
+    }
   }
 
   private def generateNativeConfig(
@@ -61,7 +72,11 @@ object ConfigConverter {
     } yield maybeNativeConfig
   }
 
-  private def generateConfig(options: CliOptions, main: String, classPath: Seq[String]): Either[Throwable, Config] = {
+  private def generateConfig(
+      options: CliOptions,
+      main: String,
+      classPath: Seq[String]
+  ): Either[Throwable, Config] = {
     for {
       nativeConfig <- generateNativeConfig(options)
       classPath <- Try(parseClassPath(classPath)).toEither

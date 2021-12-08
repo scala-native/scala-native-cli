@@ -11,7 +11,7 @@ import caseapp.core.RemainingArgs
 object ScalaNativeCli extends CaseApp[CliOptions] {
 
   def run(options: CliOptions, args: RemainingArgs) = {
-    val positionalArgs = args.all 
+    val positionalArgs = args.all
     val buildOptionsMaybe = ConfigConverter.convert(options, positionalArgs)
 
     buildOptionsMaybe.map { buildOptions =>

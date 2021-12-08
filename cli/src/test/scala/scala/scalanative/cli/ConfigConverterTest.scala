@@ -17,7 +17,8 @@ class ConfigConverterTest extends AnyFlatSpec {
   val dummyNativeConfigOptions = NativeConfigOptions()
   val dummyConfigOptions = ConfigOptions()
 
-  val dummyArguments = Seq("$Main", "A.nir", "B.nir") // TODO incomplete arguments
+  val dummyArguments =
+    Seq("$Main", "A.nir", "B.nir")
 
   val dummyCliOptions: CliOptions = CliOptions(
     config = dummyConfigOptions,
@@ -30,28 +31,33 @@ class ConfigConverterTest extends AnyFlatSpec {
     assert(config.isRight)
   }
 
-  //TODO incomplete arguments check reporting
+  // TODO incomplete arguments check reporting
+  it should "report incomplete arguments" in {
+    val noArgs = Seq()
+    val noArgsResult = ConfigConverter.convert(dummyCliOptions, noArgs)
+    assert(noArgsResult.isLeft)
+    assert(noArgsResult.left.get.isInstanceOf[IllegalArgumentException])
 
-  // it should "return default nativeConfig which lines up with empty nativeConfig" in {
-  //   val withInternallyDiscovered = 
-  //     CliOptions(
-  //       dummyConfigOptions,
-  //       NativeConfigOptions(clang = Some(""), clangPP = Some("")),
-  //       logger = dummyLoggerOptions
-  //     )
-  //   val result = ConfigConverter.convert(withInternallyDiscovered, dummyArguments)
-  //   assert(result.right.get.config.compilerConfig == NativeConfig.empty)
-  // }
+    val mainOnly = Seq("Main$")
+    val mainOnlyResult = ConfigConverter.convert(dummyCliOptions, mainOnly)
+    assert(mainOnlyResult.isLeft)
+    assert(mainOnlyResult.left.get.isInstanceOf[IllegalArgumentException])
+  }
 
   it should "parse classpath strings correctly" in {
-    val classPathStrings = Seq("/home/dir/file", "/home/dirfile2", "/home/dir/with spaces/") // check case app passing with spaces
+    val classPathStrings = Seq(
+      "/home/dir/file",
+      "/home/dirfile2",
+      "/home/dir/with spaces/"
+    ) // check case app passing with spaces
     val expected = Seq(
       Paths.get("/home/dir/file"),
       Paths.get("/home/dirfile2"),
       Paths.get("/home/dir/with spaces/")
     )
 
-    val config = ConfigConverter.convert(dummyCliOptions, Seq("$Main") ++ classPathStrings)
+    val config =
+      ConfigConverter.convert(dummyCliOptions, Seq("$Main") ++ classPathStrings)
 
     assert(config != None)
     assert(config.right.get.config.classPath.sameElements(expected))
@@ -61,10 +67,13 @@ class ConfigConverterTest extends AnyFlatSpec {
     def gcAssertion(gcString: String, expectedGC: GC) = {
       val options = CliOptions(
         dummyConfigOptions,
-        NativeConfigOptions(gc = NativeConfigParserImplicits.gcParser(None, gcString).right.get),
+        NativeConfigOptions(gc =
+          NativeConfigParserImplicits.gcParser(None, gcString).right.get
+        ),
         dummyLoggerOptions
       )
-      val config = ConfigConverter.convert(options, dummyArguments).right.get.config
+      val config =
+        ConfigConverter.convert(options, dummyArguments).right.get.config
       assert(config.compilerConfig.gc == expectedGC)
     }
     gcAssertion("immix", GC.immix)
@@ -77,10 +86,13 @@ class ConfigConverterTest extends AnyFlatSpec {
     def modeAssertion(modeString: String, expectedMode: Mode) = {
       val options = CliOptions(
         dummyConfigOptions,
-        NativeConfigOptions(mode = NativeConfigParserImplicits.modeParser(None, modeString).right.get),
+        NativeConfigOptions(mode =
+          NativeConfigParserImplicits.modeParser(None, modeString).right.get
+        ),
         dummyLoggerOptions
       )
-      val config = ConfigConverter.convert(options, dummyArguments).right.get.config
+      val config =
+        ConfigConverter.convert(options, dummyArguments).right.get.config
       assert(config.compilerConfig.mode == expectedMode)
     }
     modeAssertion("debug", Mode.debug)
@@ -92,10 +104,13 @@ class ConfigConverterTest extends AnyFlatSpec {
     def ltoAssertion(ltoString: String, expectedLto: LTO) = {
       val options = CliOptions(
         dummyConfigOptions,
-        NativeConfigOptions(lto = NativeConfigParserImplicits.ltoParser(None, ltoString).right.get),
+        NativeConfigOptions(lto =
+          NativeConfigParserImplicits.ltoParser(None, ltoString).right.get
+        ),
         dummyLoggerOptions
       )
-      val config = ConfigConverter.convert(options, dummyArguments).right.get.config
+      val config =
+        ConfigConverter.convert(options, dummyArguments).right.get.config
       assert(config.compilerConfig.lto == expectedLto)
     }
     ltoAssertion("none", LTO.none)
@@ -160,12 +175,16 @@ class ConfigConverterTest extends AnyFlatSpec {
     val expectedClangPPPath = Paths.get(clangPPString)
 
     val options = CliOptions(
-      dummyConfigOptions, 
-      NativeConfigOptions(clang=Some(clangString), clangPP = Some(clangPPString)),
+      dummyConfigOptions,
+      NativeConfigOptions(
+        clang = Some(clangString),
+        clangPP = Some(clangPPString)
+      ),
       dummyLoggerOptions
     )
 
-    val nativeConfig = ConfigConverter.convert(options, dummyArguments).right.get
+    val nativeConfig =
+      ConfigConverter.convert(options, dummyArguments).right.get
 
     assert(nativeConfig.config.compilerConfig.clang == expectedClangPath)
     assert(nativeConfig.config.compilerConfig.clangPP == expectedClangPPPath)
