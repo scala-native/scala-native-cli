@@ -1,10 +1,6 @@
 # Copy/pasted from https://github.com/scala-native/scala-native 
 name: Check Lint
-on:
-  pull_request:
-  push:
-    branches:
-      - master
+on: [pull_request]
 jobs:
   check-lint:
     runs-on: ubuntu-18.04
