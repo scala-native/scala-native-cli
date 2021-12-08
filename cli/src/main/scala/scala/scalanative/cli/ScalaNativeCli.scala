@@ -19,5 +19,5 @@ object ScalaNativeCli extends CaseApp[CliOptions] {
         Build.build(buildOptions.config, buildOptions.outpath)
       }
     }
-  }
+  } 
 }
