@@ -7,6 +7,7 @@ import java.nio.file.Paths
 import java.nio.file.Path
 import scala.util.Try
 import scala.scalanative.cli.options.CliOptions
+import caseapp.Tag
 
 case class BuildOptions(
     config: Config,
@@ -86,13 +87,9 @@ object ConfigConverter {
         .withCompilerConfig(nativeConfig)
         .withClassPath(classPath)
         .withMainClass(main)
-      val logger =
-        new FilteredLogger(
-          logDebug = !options.logger.disableDebug,
-          logInfo = !options.logger.disableInfo,
-          logWarn = !options.logger.disableWarn,
-          logError = !options.logger.disableError
-        )
+
+      val verbosity = Tag.unwrap(options.logger.verbose)
+      val logger = new FilteredLogger(verbosity)
       config.withLogger(logger)
     }
   }

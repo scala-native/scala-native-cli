@@ -33,9 +33,4 @@ In scala-native-cli their value is defined as follows:
 
 ## Logging 
 
-For logging purposes, a default Scala Native logger is used. It is possible to specify which messages to log by filtering out the unnecessary ones with the following options:
-
-* `--disable-debug`
-* `--disable-info`
-* `--disable-warn`
-* `--disable-error`
+For logging purposes, a default Scala Native logger is used. By default it will only show `Error` messages, but its verbosity can be increased with a -v flag.

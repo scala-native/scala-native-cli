@@ -20,7 +20,7 @@ class ConfigConverterTest extends AnyFlatSpec {
   val dummyArguments =
     Seq("$Main", "A.nir", "B.nir")
 
-  val dummyCliOptions: CliOptions = CliOptions(
+  val dummyCliOptions = CliOptions(
     config = dummyConfigOptions,
     nativeConfig = dummyNativeConfigOptions,
     logger = dummyLoggerOptions
@@ -117,55 +117,6 @@ class ConfigConverterTest extends AnyFlatSpec {
     ltoAssertion("thin", LTO.thin)
     ltoAssertion("full", LTO.full)
   }
-
-  // it should "parse log level options correctly" in {
-  //   def logLevelAssertion(
-  //       logLevelOptions: Array[String],
-  //       expectedLogger: FilteredLogger
-  //   ) = {
-  //     val options = dummyOptions ++ logLevelOptions
-
-  //     val obtained = BuildOptionsParser(options).right.get.get.config
-  //     assert(obtained.logger == expectedLogger)
-  //   }
-
-  //   logLevelAssertion(
-  //     Array("--disable-error"),
-  //     new FilteredLogger(
-  //       logDebug = true,
-  //       logInfo = true,
-  //       logWarn = true,
-  //       logError = false
-  //     )
-  //   )
-  //   logLevelAssertion(
-  //     Array("--disable-warn"),
-  //     new FilteredLogger(
-  //       logDebug = true,
-  //       logInfo = true,
-  //       logWarn = false,
-  //       logError = true
-  //     )
-  //   )
-  //   logLevelAssertion(
-  //     Array("--disable-info"),
-  //     new FilteredLogger(
-  //       logDebug = true,
-  //       logInfo = false,
-  //       logWarn = true,
-  //       logError = true
-  //     )
-  //   )
-  //   logLevelAssertion(
-  //     Array("--disable-debug"),
-  //     new FilteredLogger(
-  //       logDebug = false,
-  //       logInfo = true,
-  //       logWarn = true,
-  //       logError = true
-  //     )
-  //   )
-  // }
 
   it should "set clang and clang++ correctly" in {
     val clangString = "/tmp/clang"
