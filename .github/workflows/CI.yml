@@ -4,14 +4,20 @@ jobs:
   test-all:
     runs-on: ${{matrix.OS}}
     strategy:
+      fail-fast: false
       matrix:
         OS: [ubuntu-18.04, windows-2019]
+        SN: [0.4.0, 0.4.1, 0.4.2]
+        exclude:
+          # does not support windows
+          - OS: windows-2019
+            SN: 0.4.0
     steps:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v13
       - name: Unit tests
-        run: sbt cli/test
+        run: SN_CLI_VERSION=${{matrix.SN}} sbt cli/test
         shell: bash
       - name: Intergration tests
-        run: sbt cliIntegration/scripted
+        run: SN_CLI_VERSION=${{matrix.SN}} sbt cliIntegration/scripted
         shell: bash

@@ -1,5 +1,15 @@
 scalaVersion := "2.12.15"
-val nativeVersion = "0.4.1"
+
+// TODO remove and settle for one version after release
+val nativeVersion = sys.env.get("SN_CLI_VERSION") match {
+  case Some(value) => "0.4.1"
+  case None        => "0.4.0"
+}
+val versionTag =
+  if (nativeVersion == "0.4.0") "0.4.0"
+  else "newer"
+//
+
 val cliVersion = nativeVersion + "-SNAPSHOT"
 
 inThisBuild(
@@ -18,8 +28,8 @@ lazy val cli = project
     libraryDependencies += "com.github.alexarchambault" %% "case-app" % "2.1.0-M10",
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
     assembly / assemblyJarName := "scala-native-cli.jar", // Used for integration tests.
-    Compile / unmanagedSourceDirectories += baseDirectory.value / s"version_${nativeVersion}/src/main/scala",
-    Test / unmanagedSourceDirectories += baseDirectory.value / s"version_${nativeVersion}/src/test/scala"
+    Compile / unmanagedSourceDirectories += baseDirectory.value / s"version_${versionTag}/src/main/scala",
+    Test / unmanagedSourceDirectories += baseDirectory.value / s"version_${versionTag}/src/test/scala"
   )
 
 // Meant to resolve classpath dependencies, provide compiled nir
