@@ -16,7 +16,7 @@ object ScalaNativeCliTestRunnerPlugin extends AutoPlugin {
   object autoImport {
     val nativeVersion = System.getProperty("scala-native-cli-native-version")
 
-    val runTest = inputKey[Unit](
+    val runCli = inputKey[Unit](
       "Runs scala-native-cli with classpath and selected other options via cli arguments"
     )
   }

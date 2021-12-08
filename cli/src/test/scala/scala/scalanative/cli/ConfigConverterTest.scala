@@ -11,11 +11,13 @@ import scala.scalanative.build.GC
 import scala.scalanative.cli.utils.NativeConfigParserImplicits
 import scala.scalanative.build.Mode
 import scala.scalanative.build.LTO
+import scala.scalanative.cli.options.MiscOptions
 
 class ConfigConverterTest extends AnyFlatSpec {
   val dummyLoggerOptions = LoggerOptions()
   val dummyNativeConfigOptions = NativeConfigOptions()
   val dummyConfigOptions = ConfigOptions()
+  val dummyMiscOptions = MiscOptions()
 
   val dummyArguments =
     Seq("$Main", "A.nir", "B.nir")
@@ -23,7 +25,8 @@ class ConfigConverterTest extends AnyFlatSpec {
   val dummyCliOptions = CliOptions(
     config = dummyConfigOptions,
     nativeConfig = dummyNativeConfigOptions,
-    logger = dummyLoggerOptions
+    logger = dummyLoggerOptions,
+    misc = dummyMiscOptions
   )
 
   "ArgParser" should "parse default options" in {
@@ -70,7 +73,8 @@ class ConfigConverterTest extends AnyFlatSpec {
         NativeConfigOptions(gc =
           NativeConfigParserImplicits.gcParser(None, gcString).right.get
         ),
-        dummyLoggerOptions
+        dummyLoggerOptions,
+        dummyMiscOptions
       )
       val config =
         ConfigConverter.convert(options, dummyArguments).right.get.config
@@ -89,7 +93,8 @@ class ConfigConverterTest extends AnyFlatSpec {
         NativeConfigOptions(mode =
           NativeConfigParserImplicits.modeParser(None, modeString).right.get
         ),
-        dummyLoggerOptions
+        dummyLoggerOptions,
+        dummyMiscOptions
       )
       val config =
         ConfigConverter.convert(options, dummyArguments).right.get.config
@@ -107,7 +112,8 @@ class ConfigConverterTest extends AnyFlatSpec {
         NativeConfigOptions(lto =
           NativeConfigParserImplicits.ltoParser(None, ltoString).right.get
         ),
-        dummyLoggerOptions
+        dummyLoggerOptions,
+        dummyMiscOptions
       )
       val config =
         ConfigConverter.convert(options, dummyArguments).right.get.config
@@ -131,7 +137,8 @@ class ConfigConverterTest extends AnyFlatSpec {
         clang = Some(clangString),
         clangPP = Some(clangPPString)
       ),
-      dummyLoggerOptions
+      dummyLoggerOptions,
+      dummyMiscOptions
     )
 
     val nativeConfig =

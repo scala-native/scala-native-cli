@@ -11,5 +11,7 @@ case class CliOptions(
     @Recurse
     nativeConfig: NativeConfigOptions,
     @Recurse
-    logger: LoggerOptions
+    logger: LoggerOptions,
+    @Recurse
+    misc: MiscOptions
 )

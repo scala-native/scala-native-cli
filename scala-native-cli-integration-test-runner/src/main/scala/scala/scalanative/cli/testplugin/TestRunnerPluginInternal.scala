@@ -30,7 +30,7 @@ object TestRunnerPluginInternal {
       inConfig(Compile)(configSettings)
 
   lazy val configSettings: Seq[Setting[_]] = Seq(
-    runTest := {
+    runCli := {
       val args = spaceDelimited("<arg>").parsed
 
       val classpath = fullClasspath.value.map(_.data.toString())

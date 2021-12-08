@@ -1,8 +1,8 @@
 scalaVersion := "2.12.15"
 
-// TODO remove and settle for one version after release
+// TODO remove and settle for one newest after release
 val nativeVersion = sys.env.get("SN_CLI_VERSION") match {
-  case Some(value) => "0.4.1"
+  case Some(value) => value
   case None        => "0.4.0"
 }
 val versionTag =
@@ -20,7 +20,8 @@ inThisBuild(
 )
 
 lazy val cli = project
-  .in(file(s"cli"))
+  .in(file("cli"))
+  .enablePlugins(BuildInfoPlugin)
   .settings(
     moduleName := "scala-native-cli",
     scalacOptions += "-Ywarn-unused:imports",
@@ -28,6 +29,8 @@ lazy val cli = project
     libraryDependencies += "com.github.alexarchambault" %% "case-app" % "2.1.0-M10",
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
     assembly / assemblyJarName := "scala-native-cli.jar", // Used for integration tests.
+    buildInfoKeys := Seq[BuildInfoKey]("nativeVersion" -> nativeVersion),
+    buildInfoPackage := "scala.scalanative.cli.options",
     Compile / unmanagedSourceDirectories += baseDirectory.value / s"version_${versionTag}/src/main/scala",
     Test / unmanagedSourceDirectories += baseDirectory.value / s"version_${versionTag}/src/test/scala"
   )
