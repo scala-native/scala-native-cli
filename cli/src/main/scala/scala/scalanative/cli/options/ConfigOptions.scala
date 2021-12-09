@@ -4,6 +4,7 @@ import caseapp._
 
 case class ConfigOptions(
     @Group("Config")
+    @ExtraName("o")
     @HelpMessage(
       "Required path of the resulting output binary. [./scala-native-out]"
     )
