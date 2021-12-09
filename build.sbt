@@ -1,68 +1,86 @@
 scalaVersion := "2.12.15"
 
-// TODO remove and settle for the most recent after release
-val nativeVersion = sys.env.get("SN_CLI_VERSION") match {
-  case Some(value) => value
-  case None        => "0.4.0"
-}
-val versionTag =
-  if (nativeVersion == "0.4.0") "0.4.0"
-  else "newer"
-//
-
-val cliVersion = nativeVersion
+val scalaNativeVersion =
+  settingKey[String]("Version of Scala Native linker to use")
 
 inThisBuild(
   Def.settings(
     organization := "org.scala-native",
-    version := cliVersion
+    scalaNativeVersion := "0.4.0",
+    version := scalaNativeVersion.value
   )
 )
 
 lazy val cli = project
   .in(file("cli"))
-  .enablePlugins(BuildInfoPlugin)
+  .enablePlugins(BuildInfoPlugin, ScriptedPlugin)
   .settings(
-    moduleName := "scala-native-cli",
+    name := "scala-native-cli",
     scalacOptions += "-Ywarn-unused:imports",
-    libraryDependencies += "org.scala-native" %% "tools" % nativeVersion,
-    libraryDependencies += "com.github.alexarchambault" %% "case-app" % "2.1.0-M10",
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
-    assembly / assemblyJarName := "scala-native-cli.jar", // Used for integration tests.
-    buildInfoKeys := Seq[BuildInfoKey]("nativeVersion" -> nativeVersion),
+    libraryDependencies ++= Seq(
+      "org.scala-native" %% "tools" % scalaNativeVersion.value,
+      "com.github.alexarchambault" %% "case-app" % "2.1.0-M10",
+      "org.scalatest" %% "scalatest" % "3.1.1" % Test
+    ),
+    patchSourcesSettings,
+    buildInfoKeys := Seq[BuildInfoKey](
+      "nativeVersion" -> scalaNativeVersion.value
+    ),
     buildInfoPackage := "scala.scalanative.cli.options",
-    Compile / unmanagedSourceDirectories += baseDirectory.value / s"version_${versionTag}/src/main/scala",
-    Test / unmanagedSourceDirectories += baseDirectory.value / s"version_${versionTag}/src/test/scala"
-  )
-
-// Meant to resolve classpath dependencies, provide compiled nir
-// and a seperate environment for integration tests
-lazy val cliIntegration = project
-  .in(file("scala-native-cli-integration-test-runner"))
-  .enablePlugins(SbtPlugin)
-  .settings(
-    name := "scala-native-cli-integration-test-runner",
-    scriptedLaunchOpts := {
-      val cliPath =
-        (cli / Compile / packageBin / artifactPath).value.toPath.getParent.toString + "/scala-native-cli.jar"
-      scriptedLaunchOpts.value ++
-        Seq(
-          "-Xmx1024M",
-          "-Dplugin.version=" + version.value,
-          "-Dscala-native-cli=" + cliPath,
-          "-Dscala-native-cli-native-version=" + nativeVersion
-        )
+    assembly / assemblyJarName :=
+      genAssemblyJarName(
+        normalizedName.value,
+        scalaBinaryVersion.value,
+        scalaNativeVersion.value
+      ),
+    scriptedLaunchOpts ++= {
+      val jarName = genAssemblyJarName(
+        normalizedName.value,
+        scalaBinaryVersion.value,
+        scalaNativeVersion.value
+      )
+      val cliPath = (Compile / packageBin / artifactPath).value.getParentFile / jarName
+      Seq(
+        "-Xmx1024M",
+        "-Dplugin.version=" + scalaNativeVersion.value,
+        "-Dscala-native-cli=" + cliPath,
+      )
     },
-    addSbtPlugin("org.portable-scala" % "sbt-platform-deps" % "1.0.0"),
-    sbtTestDirectory := baseDirectory.value / "src/test",
-    // publish the other projects before running scripted tests.
     scriptedDependencies := {
       scriptedDependencies
-        .dependsOn(
-          cli / assembly
-        )
+        .dependsOn(assembly)
         .value
     },
     scriptedBufferLog := false
   )
-  .dependsOn(cli)
+
+def genAssemblyJarName(
+    normalizedName: String,
+    scalaBinaryVersion: String,
+    scalaNativeVersion: String
+): String = {
+  s"${normalizedName}-assembly_${scalaBinaryVersion}-${scalaNativeVersion}.jar"
+}
+
+lazy val patchSourcesSettings = {
+  def patchSources(base: File, version: String, subdir: String) = {
+    val directory = version match {
+      case v @ "0.4.0" => v
+      case _           => "current"
+    }
+    base / "patches" / directory / "src" / subdir / "scala"
+  }
+
+  Def.settings(
+    Compile / unmanagedSourceDirectories += patchSources(
+      sourceDirectory.value,
+      scalaNativeVersion.value,
+      "main"
+    ),
+    Test / unmanagedSourceDirectories += patchSources(
+      sourceDirectory.value,
+      scalaNativeVersion.value,
+      "test"
+    )
+  )
+}
