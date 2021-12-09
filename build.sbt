@@ -54,7 +54,7 @@ lazy val cliIntegration = project
         )
     },
     addSbtPlugin("org.portable-scala" % "sbt-platform-deps" % "1.0.0"),
-    sbtTestDirectory := (ThisProject / baseDirectory).value / "src/test",
+    sbtTestDirectory := baseDirectory.value / "src/test",
     // publish the other projects before running scripted tests.
     scriptedDependencies := {
       scriptedDependencies

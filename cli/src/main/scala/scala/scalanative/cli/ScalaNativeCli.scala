@@ -15,7 +15,6 @@ object ScalaNativeCli extends CaseApp[CliOptions] {
     if (options.misc.version) {
       println(BuildInfo.nativeVersion)
     } else {
-      println(scala.scalanative.cli.options.BuildInfo.nativeVersion)
       val positionalArgs = args.all
       val buildOptionsMaybe = ConfigConverter.convert(options, positionalArgs)
 
