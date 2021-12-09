@@ -15,9 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v13
-      - name: Unit tests
-        run: SN_CLI_VERSION=${{matrix.SN}} sbt cli/test
-        shell: bash
-      - name: Intergration tests
-        run: SN_CLI_VERSION=${{matrix.SN}} sbt cliIntegration/scripted
-        shell: bash
+      - name: Test
+        run: > 
+          sbt 
+          "set scalaNativeVersion := ${{matrix.SN}}"
+          cli/test
+          cli/scripted
