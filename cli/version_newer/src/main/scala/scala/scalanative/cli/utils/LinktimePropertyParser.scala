@@ -6,19 +6,12 @@ import scala.util.Try
 object LinktimePropertyParser {
 
   val ltpPattern = Pattern.compile("(.*?)=(.*)")
-  val valueTypePattern = Pattern.compile("\\[(.*?)\\](.*)")
 
   @inline
   def getLtpPatternException(incorrectPattern: String) =
     new IllegalArgumentException(
-      s"""|Link-time resolved properties must be of pattern keystring=[Type]value
-              |\"${incorrectPattern}\" is incorrect.""".stripMargin
-    )
-  @inline
-  def getLtpTypeException(incorrectType: String) =
-    new IllegalArgumentException(
-      s"""|Unrecognised link-time property value type:
-          |\"${incorrectType}\" is incorrect.""".stripMargin
+      s"""|Link-time resolved properties must be of pattern keystring=boolean
+          |\"${incorrectPattern}\" is incorrect.""".stripMargin
     )
 
   def toMap(ltpStrings: List[String]): Either[Throwable, Map[String, Any]] = {
@@ -26,11 +19,12 @@ object LinktimePropertyParser {
       ltpStrings
         .map { inputPattern =>
           val matcher = ltpPattern.matcher(inputPattern)
-          if (!matcher.find() || matcher.groupCount() != 2) {
+          if (!matcher.find() || matcher.groupCount() != 2 || matcher.group(1).isEmpty()) {
             Left(getLtpPatternException(inputPattern))
           } else {
-            val (key, typedValue) = (matcher.group(1), matcher.group(2))
-            handleTypedValue(inputPattern, typedValue) match {
+            val (key, booleanString) = (matcher.group(1), matcher.group(2))
+
+            Try(booleanString.toBoolean).toEither match {
               case Right(value) => Right((key, value))
               case Left(value)  => Left(value)
             }
@@ -48,35 +42,6 @@ object LinktimePropertyParser {
       Left(errors.head)
     } else {
       Right(eitherList.collect { case Right(value) => value }.toMap)
-    }
-  }
-
-  def handleTypedValue(
-      pattern: String,
-      typedValue: String
-  ): Either[Throwable, Any] = {
-    val matcher = valueTypePattern.matcher(typedValue)
-
-    if (!matcher.find() || matcher.groupCount() != 2) {
-      Left(getLtpPatternException(pattern))
-    } else {
-      val valueType = matcher.group(1)
-      val valueContent = matcher.group(2)
-
-      Try {
-        valueType match {
-          case "Boolean" => valueContent.toBoolean
-          case "Byte"    => valueContent.toByte
-          case "Char"    => valueContent.toInt.toChar
-          case "Short"   => valueContent.toShort
-          case "Int"     => valueContent.toInt
-          case "Long"    => valueContent.toLong
-          case "Float"   => valueContent.toFloat
-          case "Double"  => valueContent.toDouble
-          case "String"  => valueContent
-          case _         => throw getLtpTypeException(valueType)
-        }
-      }.toEither
     }
   }
 }
