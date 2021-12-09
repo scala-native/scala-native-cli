@@ -7,7 +7,8 @@ class LinktimePropertyParserTest extends AnyFlatSpec {
 
   "LinktimePropertyParser" should "handle boolean value types correctly" in {
     val input = List("isTesting=true", "isNotTesting=False")
-    val expected = Map[String, Any]("isTesting" -> true, "isNotTesting" -> false)
+    val expected =
+      Map[String, Any]("isTesting" -> true, "isNotTesting" -> false)
     val obtained = LinktimePropertyParser.toMap(input)
     assert(obtained.right.get == expected)
   }

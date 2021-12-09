@@ -20,7 +20,7 @@ class ConfigConverterTest extends AnyFlatSpec {
   val dummyMiscOptions = MiscOptions()
 
   val dummyArguments =
-    Seq("$Main", "A.nir", "B.nir")
+    Seq("Main$", "A.nir", "B.nir")
 
   val dummyCliOptions = CliOptions(
     config = dummyConfigOptions,
@@ -34,7 +34,6 @@ class ConfigConverterTest extends AnyFlatSpec {
     assert(config.isRight)
   }
 
-  // TODO incomplete arguments check reporting
   it should "report incomplete arguments" in {
     val noArgs = Seq()
     val noArgsResult = ConfigConverter.convert(dummyCliOptions, noArgs)
@@ -52,7 +51,7 @@ class ConfigConverterTest extends AnyFlatSpec {
       "/home/dir/file",
       "/home/dirfile2",
       "/home/dir/with spaces/"
-    ) // check case app passing with spaces
+    )
     val expected = Seq(
       Paths.get("/home/dir/file"),
       Paths.get("/home/dirfile2"),
@@ -146,5 +145,36 @@ class ConfigConverterTest extends AnyFlatSpec {
 
     assert(nativeConfig.config.compilerConfig.clang == expectedClangPath)
     assert(nativeConfig.config.compilerConfig.clangPP == expectedClangPPPath)
+  }
+
+  it should "parse boolean options as opposite of default" in {
+    val options = CliOptions(
+      dummyConfigOptions,
+      NativeConfigOptions(
+        check = true,
+        dump = true,
+        noOptimize = true,
+        linkStubs = true
+      ),
+      dummyLoggerOptions,
+      dummyMiscOptions
+    )
+    val default = ConfigConverter
+      .convert(dummyCliOptions, dummyArguments)
+      .right
+      .get
+      .config
+      .compilerConfig
+    val nonDefault = ConfigConverter
+      .convert(options, dummyArguments)
+      .right
+      .get
+      .config
+      .compilerConfig
+
+    assert(nonDefault.check != default.check)
+    assert(nonDefault.dump != default.dump)
+    assert(nonDefault.optimize != default.optimize)
+    assert(nonDefault.linkStubs != default.linkStubs)
   }
 }

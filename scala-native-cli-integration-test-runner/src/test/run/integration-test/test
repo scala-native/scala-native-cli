@@ -29,7 +29,3 @@ $ mkdir native-dir
 > runCli --outpath target/out6 -v -v --workdir native-dir --dump Main$
 $ exists native-dir/optimized.hnir
 $ exists target/out6
-
-# -- Fail on an incorrect link-time property
-> runCli --outpath target/out7 -v -v --ltp key=ok Main$
--$ exists target/out7

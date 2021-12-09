@@ -19,7 +19,10 @@ object LinktimePropertyParser {
       ltpStrings
         .map { inputPattern =>
           val matcher = ltpPattern.matcher(inputPattern)
-          if (!matcher.find() || matcher.groupCount() != 2 || matcher.group(1).isEmpty()) {
+          if (
+            !matcher
+              .find() || matcher.groupCount() != 2 || matcher.group(1).isEmpty()
+          ) {
             Left(getLtpPatternException(inputPattern))
           } else {
             val (key, booleanString) = (matcher.group(1), matcher.group(2))

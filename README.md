@@ -14,5 +14,3 @@ Since options are dependent on the used version of scala-native-cli, please use 
 ## Logging 
 
 For logging purposes, a default Scala Native logger is used. By default it will only show `Error` messages, but its verbosity can be increased with a -v flag.
-
-
