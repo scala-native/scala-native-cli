@@ -1,6 +1,6 @@
 scalaVersion := "2.12.15"
 
-// TODO remove and settle for one newest after release
+// TODO remove and settle for the most recent after release
 val nativeVersion = sys.env.get("SN_CLI_VERSION") match {
   case Some(value) => value
   case None        => "0.4.0"
@@ -10,7 +10,7 @@ val versionTag =
   else "newer"
 //
 
-val cliVersion = nativeVersion + "-SNAPSHOT"
+val cliVersion = nativeVersion
 
 inThisBuild(
   Def.settings(
