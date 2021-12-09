@@ -20,9 +20,9 @@ object ScalaNativeCli extends CaseApp[CliOptions] {
       val buildOptionsMaybe = ConfigConverter.convert(options, positionalArgs)
 
       buildOptionsMaybe match {
-        case Left(thrown) => 
-          System.err.println(thrown.getMessage()) 
-        case Right(buildOptions) => 
+        case Left(thrown) =>
+          System.err.println(thrown.getMessage())
+        case Right(buildOptions) =>
           Scope { implicit scope =>
             Build.build(buildOptions.config, buildOptions.outpath)
           }
