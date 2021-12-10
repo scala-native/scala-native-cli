@@ -16,8 +16,8 @@ jobs:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v13
       - name: Test
-        run: > 
-          sbt 
-          'set scalaNativeVersion := "${{matrix.SN}}"'
-          cli/test
-          cli/scripted
+        run: >
+         sbt 'set cli/scalaNativeVersion := "${{matrix.SN}}"'
+         cli/test
+         cli/scripted
+        shell: bash
