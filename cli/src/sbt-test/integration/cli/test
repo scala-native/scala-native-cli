@@ -15,7 +15,7 @@ $ exec target/out1
 -> runCli --outpath target/out3 -v -v --gc fast --main Main$
 
 # -- Link even with an unspecified option
-> runCli --outpath target/out4 -v -v --unspecified Main$
+> runCli --outpath target/out4 -v -v --unspecified --main Main$
 
 # -- Do not write nir files if not specified
 > runCli --outpath target/out5 -v -v --main Main$
