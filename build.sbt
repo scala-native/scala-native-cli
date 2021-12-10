@@ -39,6 +39,7 @@ lazy val cli = project
         "-Dscala-native-cli=" + cliPath
       )
     },
+    scriptedBufferLog := false,
     scriptedDependencies := {
       scriptedDependencies
         .dependsOn(assembly)
