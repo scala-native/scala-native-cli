@@ -16,16 +16,15 @@ object ScalaNativeCli extends CaseApp[CliOptions] {
   def run(options: CliOptions, args: RemainingArgs) = {
     if (options.misc.version) {
       println(BuildInfo.nativeVersion)
-    } else if (options.config.main == None) {
+    } else if (options.config.main.isEmpty) {
       println("Required option not specified: --main")
       exit(1)
     } else {
-      val ignoredArgs = args.all.filter(_.startsWith("--"))
+      val (ignoredArgs, classpath) = args.all.partition(_.startsWith("-"))
       ignoredArgs.foreach { arg =>
         println(s"Unrecognised argument: ${arg}")
       }
       val main = options.config.main.get
-      val classpath = args.all.filter(!_.startsWith("--"))
       val buildOptionsMaybe = ConfigConverter.convert(options, main, classpath)
 
       buildOptionsMaybe match {

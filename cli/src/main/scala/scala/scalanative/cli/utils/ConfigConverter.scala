@@ -21,7 +21,7 @@ object ConfigConverter {
       main: String,
       classpath: Seq[String]
   ): Either[Throwable, BuildOptions] = {
-    if (classpath.size == 0) {
+    if (classpath.isEmpty) {
       Left(
         new IllegalArgumentException(
           "Classpath not specified. Pass classpath files as positional arguments."

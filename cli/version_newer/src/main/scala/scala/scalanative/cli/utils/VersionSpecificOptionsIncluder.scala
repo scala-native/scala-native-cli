@@ -5,7 +5,7 @@ import scala.scalanative.build.NativeConfig
 import _root_.scala.scalanative.cli.options.CliOptions
 import scala.util.Try
 
-object VersionSpecificOptionsIncluder {
+private[utils] object VersionSpecificOptionsIncluder {
   def withVersionSpecificOptions(
       options: CliOptions,
       baseNativeConfig: NativeConfig
@@ -19,7 +19,7 @@ object VersionSpecificOptionsIncluder {
       baseNativeConfig: NativeConfig
   ): Either[Throwable, NativeConfig] = {
     LinktimePropertyParser
-      .toMap(options.nativeConfig.ltp)
+      .parseAll(options.nativeConfig.ltp)
       .flatMap { ltpMap =>
         Try(
           baseNativeConfig.withLinktimeProperties(ltpMap)

@@ -4,7 +4,7 @@ import scala.scalanative.build.NativeConfig
 
 import scala.scalanative.cli.options.CliOptions
 
-object VersionSpecificOptionsIncluder {
+private[utils] object VersionSpecificOptionsIncluder {
   def withVersionSpecificOptions(
       options: CliOptions,
       nativeConfig: NativeConfig
