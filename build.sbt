@@ -1,11 +1,12 @@
-scalaVersion := "2.12.15"
-
 val scalaNativeVersion =
-  settingKey[String]("Version of Scala Native linker to use")
+  settingKey[String]("Version of Scala Native for which to build to CLI")
+
+val cliAssemblyJarName = settingKey[String]("Name of created assembly jar")
 
 inThisBuild(
   Def.settings(
     organization := "org.scala-native",
+    scalaVersion := "2.12.15",
     scalaNativeVersion := "0.4.0",
     version := scalaNativeVersion.value
   )
@@ -27,41 +28,25 @@ lazy val cli = project
       "nativeVersion" -> scalaNativeVersion.value
     ),
     buildInfoPackage := "scala.scalanative.cli.options",
-    assembly / assemblyJarName :=
-      genAssemblyJarName(
-        normalizedName.value,
-        scalaBinaryVersion.value,
-        scalaNativeVersion.value
-      ),
+    cliAssemblyJarName := s"${normalizedName.value}-assembly_${scalaBinaryVersion.value}-${scalaNativeVersion.value}.jar",
+    assembly / assemblyJarName := cliAssemblyJarName.value,
     scriptedLaunchOpts ++= {
-      val jarName = genAssemblyJarName(
-        normalizedName.value,
-        scalaBinaryVersion.value,
-        scalaNativeVersion.value
-      )
-      val cliPath = (Compile / packageBin / artifactPath).value.getParentFile / jarName
+      val jarName = cliAssemblyJarName.value
+      val cliPath = (Compile / crossTarget).value / jarName
       Seq(
         "-Xmx1024M",
         "-Dplugin.version=" + scalaNativeVersion.value,
-        "-Dscala-native-cli=" + cliPath,
+        "-Dscala-native-cli=" + cliPath
       )
     },
     scriptedDependencies := {
       scriptedDependencies
         .dependsOn(assembly)
         .value
-    },
-    scriptedBufferLog := false
+    }
   )
 
-def genAssemblyJarName(
-    normalizedName: String,
-    scalaBinaryVersion: String,
-    scalaNativeVersion: String
-): String = {
-  s"${normalizedName}-assembly_${scalaBinaryVersion}-${scalaNativeVersion}.jar"
-}
-
+// To be removed since 0.4.2
 lazy val patchSourcesSettings = {
   def patchSources(base: File, version: String, subdir: String) = {
     val directory = version match {
