@@ -18,17 +18,16 @@ object ConfigConverter {
 
   def convert(
       options: CliOptions,
-      positionalArgs: Seq[String]
+      main: String,
+      classpath: Seq[String]
   ): Either[Throwable, BuildOptions] = {
-    if (positionalArgs.size < 2) {
+    if (classpath.size == 0) {
       Left(
         new IllegalArgumentException(
-          "Not enough positional arguments. Main and at least one source file need to be specified."
+          "Classpath not specified. Pass classpath files as positional arguments."
         )
       )
     } else {
-      val main = positionalArgs.head
-      val classpath = positionalArgs.tail
       generateConfig(options, main, classpath).flatMap(config =>
         Try(Paths.get(options.config.outpath)).toEither.map(outpath =>
           BuildOptions(config, outpath)

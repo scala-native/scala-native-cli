@@ -4,7 +4,7 @@
 > runCli --version
 
 # -- Link and check if outpath exists
-> runCli --outpath target/out1 -v -v Main$ 
+> runCli --outpath target/out1 -v -v --main Main$ 
 $ exists target/out1
 
 # -- Fail to link without main specified
@@ -12,20 +12,20 @@ $ exists target/out1
 -$ exists target/out2
 
 # -- Fail to link with an incorrect option
-> runCli --outpath target/out3 -v -v --gc fast Main$ 
+> runCli --outpath target/out3 -v -v --gc fast --main Main$ 
 -$ exists target/out3
 
-# -- Fail to link with an unspecified option
-> runCli --outpath target/out4 -v -v --unspecified Main$ 
--$ exists target/out4
+# -- Link even with an unspecified option
+> runCli --outpath target/out4 -v -v --unspecified --main Main$ 
+$ exists target/out4
 
 # -- Do not write nir files if not specified
-> runCli --outpath target/out5 -v -v Main$ 
+> runCli --outpath target/out5 -v -v --main Main$ 
 -$ exists optimized.hnir
 $ exists target/out5
 
 # -- Write nir files to workdir if specified
 $ mkdir native-dir
-> runCli --outpath target/out6 -v -v --workdir native-dir --dump Main$
+> runCli --outpath target/out6 -v -v --workdir native-dir --dump --main Main$
 $ exists native-dir/optimized.hnir
 $ exists target/out6

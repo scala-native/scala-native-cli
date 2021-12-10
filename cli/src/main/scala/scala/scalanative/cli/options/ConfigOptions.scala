@@ -4,9 +4,13 @@ import caseapp._
 
 case class ConfigOptions(
     @Group("Config")
+    @HelpMessage("Required main class.")
+    @ValueDescription("<main>")
+    main: Option[String] = None,
+    @Group("Config")
     @ExtraName("o")
     @HelpMessage(
-      "Required path of the resulting output binary. [./scala-native-out]"
+      "Path of the resulting output binary. [./scala-native-out]"
     )
     @ValueDescription("<output-path>")
     outpath: String = "scala-native-out",

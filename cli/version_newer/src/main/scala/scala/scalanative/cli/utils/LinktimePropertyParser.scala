@@ -25,12 +25,8 @@ object LinktimePropertyParser {
           ) {
             Left(getLtpPatternException(inputPattern))
           } else {
-            val (key, booleanString) = (matcher.group(1), matcher.group(2))
-
-            Try(booleanString.toBoolean).toEither match {
-              case Right(value) => Right((key, value))
-              case Left(value)  => Left(value)
-            }
+            val (key, value) = (matcher.group(1), matcher.group(2))
+            Right((key, value))
           }
         }
 

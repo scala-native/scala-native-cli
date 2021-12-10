@@ -4,7 +4,7 @@ import caseapp._
 
 @AppName("ScalaNativeCli")
 @ProgName("scala-native-cli")
-@ArgsName("main-class] [nir-sources")
+@ArgsName("classpath")
 case class CliOptions(
     @Recurse
     config: ConfigOptions,

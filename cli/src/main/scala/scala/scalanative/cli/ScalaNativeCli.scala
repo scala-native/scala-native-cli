@@ -11,16 +11,27 @@ import scala.scalanative.cli.options.BuildInfo
 
 object ScalaNativeCli extends CaseApp[CliOptions] {
 
+  override def ignoreUnrecognized: Boolean = true
+
   def run(options: CliOptions, args: RemainingArgs) = {
     if (options.misc.version) {
       println(BuildInfo.nativeVersion)
+    } else if (options.config.main == None) {
+      println("Required option not specified: --main")
+      exit(1)
     } else {
-      val positionalArgs = args.all
-      val buildOptionsMaybe = ConfigConverter.convert(options, positionalArgs)
+      val ignoredArgs = args.all.filter(_.startsWith("--"))
+      ignoredArgs.foreach { arg =>
+        println(s"Unrecognised argument: ${arg}")
+      }
+      val main = options.config.main.get
+      val classpath = args.all.filter(!_.startsWith("--"))
+      val buildOptionsMaybe = ConfigConverter.convert(options, main, classpath)
 
       buildOptionsMaybe match {
         case Left(thrown) =>
           System.err.println(thrown.getMessage())
+          exit(1)
         case Right(buildOptions) =>
           Scope { implicit scope =>
             Build.build(buildOptions.config, buildOptions.outpath)

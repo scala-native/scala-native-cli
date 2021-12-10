@@ -16,11 +16,12 @@ import scala.scalanative.cli.options.MiscOptions
 class ConfigConverterTest extends AnyFlatSpec {
   val dummyLoggerOptions = LoggerOptions()
   val dummyNativeConfigOptions = NativeConfigOptions()
-  val dummyConfigOptions = ConfigOptions()
+  val dummyConfigOptions = ConfigOptions(main = Some("Main$"))
   val dummyMiscOptions = MiscOptions()
 
   val dummyArguments =
-    Seq("Main$", "A.nir", "B.nir")
+    Seq("A.jar", "B.jar")
+  val dummyMain = "Main$"
 
   val dummyCliOptions = CliOptions(
     config = dummyConfigOptions,
@@ -30,18 +31,15 @@ class ConfigConverterTest extends AnyFlatSpec {
   )
 
   "ArgParser" should "parse default options" in {
-    val config = ConfigConverter.convert(dummyCliOptions, dummyArguments)
+    val config =
+      ConfigConverter.convert(dummyCliOptions, dummyMain, dummyArguments)
     assert(config.isRight)
   }
 
   it should "report incomplete arguments" in {
     val noArgs = Seq()
-    val noArgsResult = ConfigConverter.convert(dummyCliOptions, noArgs)
-    assert(noArgsResult.isLeft)
-    assert(noArgsResult.left.get.isInstanceOf[IllegalArgumentException])
-
-    val mainOnly = Seq("Main$")
-    val mainOnlyResult = ConfigConverter.convert(dummyCliOptions, mainOnly)
+    val mainOnlyResult =
+      ConfigConverter.convert(dummyCliOptions, dummyMain, noArgs)
     assert(mainOnlyResult.isLeft)
     assert(mainOnlyResult.left.get.isInstanceOf[IllegalArgumentException])
   }
@@ -59,7 +57,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     )
 
     val config =
-      ConfigConverter.convert(dummyCliOptions, Seq("$Main") ++ classPathStrings)
+      ConfigConverter.convert(dummyCliOptions, dummyMain, classPathStrings)
 
     assert(config != None)
     assert(config.right.get.config.classPath.sameElements(expected))
@@ -76,7 +74,11 @@ class ConfigConverterTest extends AnyFlatSpec {
         dummyMiscOptions
       )
       val config =
-        ConfigConverter.convert(options, dummyArguments).right.get.config
+        ConfigConverter
+          .convert(options, dummyMain, dummyArguments)
+          .right
+          .get
+          .config
       assert(config.compilerConfig.gc == expectedGC)
     }
     gcAssertion("immix", GC.immix)
@@ -96,7 +98,11 @@ class ConfigConverterTest extends AnyFlatSpec {
         dummyMiscOptions
       )
       val config =
-        ConfigConverter.convert(options, dummyArguments).right.get.config
+        ConfigConverter
+          .convert(options, dummyMain, dummyArguments)
+          .right
+          .get
+          .config
       assert(config.compilerConfig.mode == expectedMode)
     }
     modeAssertion("debug", Mode.debug)
@@ -115,7 +121,11 @@ class ConfigConverterTest extends AnyFlatSpec {
         dummyMiscOptions
       )
       val config =
-        ConfigConverter.convert(options, dummyArguments).right.get.config
+        ConfigConverter
+          .convert(options, dummyMain, dummyArguments)
+          .right
+          .get
+          .config
       assert(config.compilerConfig.lto == expectedLto)
     }
     ltoAssertion("none", LTO.none)
@@ -141,7 +151,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     )
 
     val nativeConfig =
-      ConfigConverter.convert(options, dummyArguments).right.get
+      ConfigConverter.convert(options, dummyMain, dummyArguments).right.get
 
     assert(nativeConfig.config.compilerConfig.clang == expectedClangPath)
     assert(nativeConfig.config.compilerConfig.clangPP == expectedClangPPPath)
@@ -160,13 +170,13 @@ class ConfigConverterTest extends AnyFlatSpec {
       dummyMiscOptions
     )
     val default = ConfigConverter
-      .convert(dummyCliOptions, dummyArguments)
+      .convert(dummyCliOptions, dummyMain, dummyArguments)
       .right
       .get
       .config
       .compilerConfig
     val nonDefault = ConfigConverter
-      .convert(options, dummyArguments)
+      .convert(options, dummyMain, dummyArguments)
       .right
       .get
       .config
