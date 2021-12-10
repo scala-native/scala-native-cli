@@ -4,7 +4,7 @@ import java.util.regex.Pattern
 
 private[utils] object LinktimePropertyParser {
 
-  val ltpPattern = Pattern.compile("(.*?)=(.*)")
+  private val ltpPattern = Pattern.compile("(.*?)=(.*)")
 
   @inline
   private def getLtpPatternException(incorrectPattern: String) =
