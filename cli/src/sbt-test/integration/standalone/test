@@ -1,4 +1,5 @@
 > runScript scala-native-c Main.scala
 
-> runScript scala-native-ld Main$ . -o scala-native-out
-$ exists scala-native-out
+> runScript scala-native-ld --main Main$ . -o scala-native-out.exe
+$ exists scala-native-out.exe
+$ exec ./scala-native-out.exe
