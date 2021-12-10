@@ -41,7 +41,7 @@ case class NativeConfigOptions(
     @HelpMessage(
       "User defined properties resolved at link-time. Multiple can be defined. Example: \"isCli=true\""
     )
-    @ValueDescription("<keystring=boolean>")
+    @ValueDescription("<keystring=value>")
     ltp: List[String] = List.empty,
     @Group("Native Config")
     @HelpMessage("Linking options passed to LLVM. Multiple can be defined.")
