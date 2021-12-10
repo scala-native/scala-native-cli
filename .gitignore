@@ -1,0 +1,29 @@
+**/target/
+
+scripts/.coursier
+scripts/.scalafmt*
+
+# IntelliJ
+.idea
+
+# Eclipse / Scala IDE
+bin/
+.project
+.classpath
+.settings/
+.externalToolBuilders/
+.cache*
+
+# metals
+**/.bloop/
+**/.metals/
+/project/**/metals.sbt
+
+# Build Server Protocol, used by sbt
+/.bsp/
+
+# vscode
+/.vscode/
+
+# vim
+*.swp

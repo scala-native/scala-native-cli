@@ -1,0 +1,9 @@
+# Copy/pasted from https://github.com/scala-native/scala-native 
+name: Check CLA
+on: [pull_request]
+jobs:
+  check-cla:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./scripts/check-cla.sh

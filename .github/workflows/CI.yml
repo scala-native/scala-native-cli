@@ -1,0 +1,23 @@
+name: Test All
+on: [pull_request]
+jobs:
+  test-all:
+    runs-on: ${{matrix.OS}}
+    strategy:
+      fail-fast: false
+      matrix:
+        OS: [ubuntu-18.04, windows-2019]
+        SN: [0.4.0, 0.4.1, 0.4.2]
+        exclude:
+          # does not support windows
+          - OS: windows-2019
+            SN: 0.4.0
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v13
+      - name: Test
+        run: >
+         sbt 'set cli/scalaNativeVersion := "${{matrix.SN}}"'
+         cli/test
+         cli/scripted
+        shell: bash

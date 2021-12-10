@@ -1,0 +1,9 @@
+# Copy/pasted from https://github.com/scala-native/scala-native 
+name: Check Lint
+on: [pull_request]
+jobs:
+  check-lint:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - run: ./scripts/check-lint.sh
