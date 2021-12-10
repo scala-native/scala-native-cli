@@ -25,13 +25,17 @@ val isWindows = System
     cacheDir / s"fetchScala-$ver",
     FilesInfo.lastModified,
     FilesInfo.exists
-  ) { dependencies =>
+  ) { _ =>
     if (!scalaBinDir.exists) {
       IO.unzipURL(
         url(s"https://downloads.lightbend.com/scala/${ver}/scala-$ver.zip"),
         cacheDir
       )
     }
+    // Make sure we can execute scala/scalac from downloaded distro
+    scalaBinDir.listFiles()
+      .foreach(f => f.setExecutable( /* executable = */ true, /* ownerOnly = */ false))
+
     Set(scalaBinDir)
   }(Set(scalaBinDir))
 
@@ -47,12 +51,9 @@ val isWindows = System
   // reported as such, leading to failing CI and confusing output
   proc.redirectErrorStream(true)
   proc.inheritIO()
-  scalaBinDir.listFiles().foreach(f => f.setExecutable( /* executable = */ true, /* ownerOnly = */ false))
+
   val prevPath = proc.environment.get("PATH")
-  val newPath = prevPath.split(":").filter(!_.contains("scala")).mkString(":")
-  proc.environment.put("PATH", s"$scalaBinDir:${newPath}")
-  proc.environment.put("SCALA_HOME", s"$scalaBinDir")
-  println(proc.environment.get("PATH"))
+  proc.environment.put("PATH", s"$scalaBinDir:${prevPath}")
 
   proc.start().waitFor() match {
     case 0 => ()
