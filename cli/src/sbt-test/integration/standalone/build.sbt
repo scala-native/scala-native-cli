@@ -4,6 +4,7 @@ import complete.DefaultParsers._
 import scala.collection.JavaConverters._
 import java.util.Locale
 import java.nio.file.Paths
+import java.io.File
 
 val runScript = inputKey[Unit](
   "Runs scala-native-cli pack script"
@@ -18,7 +19,8 @@ val isWindows = System
   .startsWith("windows")
 
   val ver = scalaVersion.value
-  val cacheDir = new File(cliPackDir).getParentFile.getParentFile / s"fetchScala-$ver"
+  val cacheDir =
+    new File(cliPackDir).getParentFile.getParentFile / s"fetchScala-$ver"
   val scalaBinDir = cacheDir / s"scala-$ver" / "bin"
 
   FileFunction.cached(
@@ -33,8 +35,11 @@ val isWindows = System
       )
     }
     // Make sure we can execute scala/scalac from downloaded distro
-    scalaBinDir.listFiles()
-      .foreach(f => f.setExecutable( /* executable = */ true, /* ownerOnly = */ false))
+    scalaBinDir
+      .listFiles()
+      .foreach(f =>
+        f.setExecutable( /* executable = */ true, /* ownerOnly = */ false)
+      )
 
     Set(scalaBinDir)
   }(Set(scalaBinDir))
@@ -43,7 +48,7 @@ val isWindows = System
   val proc =
     if (isWindows)
       new ProcessBuilder(
-        (Seq("cmd", "/c", s"${script}.bat") ++ args.tail): _*
+        (Seq("cmd", "/c", script) ++ args): _*
       )
     else new ProcessBuilder((Seq("sh", script) ++ args): _*)
 
@@ -53,7 +58,10 @@ val isWindows = System
   proc.inheritIO()
 
   val prevPath = proc.environment.get("PATH")
-  proc.environment.put("PATH", s"$scalaBinDir:${prevPath}")
+  proc.environment.put(
+    "PATH",
+    s"${scalaBinDir}${File.pathSeparator}${prevPath}"
+  )
 
   proc.start().waitFor() match {
     case 0 => ()
