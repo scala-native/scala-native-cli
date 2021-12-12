@@ -40,9 +40,9 @@ runCli := {
 runExec := {
   val args = spaceDelimited("<arg>").parsed
   new ProcessBuilder(args: _*)
-  .inheritIO()
-  .start()
-  .waitFor() match {
+    .inheritIO()
+    .start()
+    .waitFor() match {
     case 0 => ()
     case exitCode =>
       throw new RuntimeException(

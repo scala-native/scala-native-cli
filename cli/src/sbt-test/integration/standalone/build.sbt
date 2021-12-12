@@ -14,12 +14,12 @@ val runExec = inputKey[Unit](
 )
 
 runScript := {
-val scriptName +: args = spaceDelimited("<arg>").parsed.toSeq
-val cliPackDir = System.getProperty("scala-native-cli-pack")
-val isWindows = System
-  .getProperty("os.name", "unknown")
-  .toLowerCase(Locale.ROOT)
-  .startsWith("windows")
+  val scriptName +: args = spaceDelimited("<arg>").parsed.toSeq
+  val cliPackDir = System.getProperty("scala-native-cli-pack")
+  val isWindows = System
+    .getProperty("os.name", "unknown")
+    .toLowerCase(Locale.ROOT)
+    .startsWith("windows")
 
   val ver = scalaVersion.value
   val cacheDir =
@@ -60,7 +60,7 @@ val isWindows = System
   proc.redirectErrorStream(true)
   proc.inheritIO()
 
-  val pathName = if(isWindows) "Path" else "PATH"
+  val pathName = if (isWindows) "Path" else "PATH"
   val prevPath = proc.environment.get(pathName)
   proc.environment.put(
     pathName,
@@ -79,9 +79,9 @@ val isWindows = System
 runExec := {
   val args = spaceDelimited("<arg>").parsed
   new ProcessBuilder(args: _*)
-  .inheritIO()
-  .start()
-  .waitFor() match {
+    .inheritIO()
+    .start()
+    .waitFor() match {
     case 0 => ()
     case exitCode =>
       throw new RuntimeException(
