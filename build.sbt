@@ -1,12 +1,4 @@
-// Until 0.4.2 there was no tools published for Scala 2.11 and 2.13
-val crossScalaNative211 = Seq("2.11.12")
 val crossScalaNative212 = Seq("2.12.13", "2.12.14", "2.12.15")
-val crossScalaNative213 = Seq("2.13.4", "2.13.5", "2.13.6", "2.13.7")
-val scalaVersions = Map(
-  "2.11" -> crossScalaNative211,
-  "2.12" -> crossScalaNative212,
-  "2.13" -> crossScalaNative213
-)
 
 val scalaNativeVersion =
   settingKey[String]("Version of Scala Native for which to build to CLI")
@@ -16,7 +8,7 @@ val cliAssemblyJarName = settingKey[String]("Name of created assembly jar")
 inThisBuild(
   Def.settings(
     organization := "org.scala-native",
-    scalaVersion := "2.12.15",
+    scalaVersion := crossScalaNative212.last,
     scalaNativeVersion := "0.4.0",
     version := scalaNativeVersion.value
   )
@@ -34,12 +26,7 @@ lazy val cli = project
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
       "org.scalatest" %% "scalatest" % "3.1.1" % Test,
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 11)) =>
-          // Last published verison for Scala 2.11
-          "com.github.alexarchambault" %% "case-app" % "2.0.0-M9"
-        case _ => "com.github.alexarchambault" %% "case-app" % "2.1.0-M10"
-      }
+      "com.github.alexarchambault" %% "case-app" % "2.1.0-M10"
     ),
     patchSourcesSettings,
     buildInfoKeys := Seq[BuildInfoKey](
@@ -76,7 +63,7 @@ lazy val cliPackSettings = Def.settings(
     val scalaBinVer = scalaBinaryVersion.value
     val snVer = scalaNativeVersion.value
 
-    val scalaFullVers = scalaVersions(scalaBinVer)
+    val scalaFullVers = crossScalaNative212
     val cliAssemblyJar = assembly.value
 
     // Standard modules needed for linking of Scala Native
