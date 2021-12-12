@@ -8,7 +8,7 @@ BASE="$(dirname $0)/.."
 
 CLILIB="$BASE/lib/scala-native-cli-assembly_$SCALA_BIN_VER-$SCALANATIVE_VER.jar"
 NATIVELIB=""
-libs="NATIVELIB clib posixlib windowslib auxlib javalib scalalib"
+libs="nativelib clib posixlib windowslib auxlib javalib scalalib"
 for lib in $libs; do
     NATIVELIB="${NATIVELIB} $BASE/lib/${lib}_native${SCALANATIVE_BIN_VER}_$SCALA_BIN_VER-$SCALANATIVE_VER.jar"
 done

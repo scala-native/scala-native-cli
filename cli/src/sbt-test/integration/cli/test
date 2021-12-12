@@ -6,7 +6,7 @@
 # -- Link and check if outpath exists
 > runCli --outpath target/out1.exe -v -v --main Main$
 $ exists target/out1.exe
-> runExec target/out1.exe
+> runExec ./target/out1.exe
 
 # -- Fail to link without main specified
 -> runCli --outpath target/out2 -v -v
