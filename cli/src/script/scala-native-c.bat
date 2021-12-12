@@ -4,7 +4,7 @@ SetLocal
 set SCALA_BIN_VER=@SCALA_BIN_VER@
 set SCALANATIVE_VER=@SCALANATIVE_VER@
 set SCALANATIVE_BIN_VER=@SCALANATIVE_BIN_VER@
-echo %*
+
 for /F "tokens=5" %%i in (' scala -version 2^>^&1 1^>nul ') do set SCALA_VER=%%i
 
 if NOT "%SCALA_VER:~0,4%" == "%SCALA_BIN_VER%" (

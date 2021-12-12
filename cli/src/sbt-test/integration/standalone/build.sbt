@@ -9,6 +9,9 @@ import java.io.File
 val runScript = inputKey[Unit](
   "Runs scala-native-cli pack script"
 )
+val runExec = inputKey[Unit](
+  "Runs given executable (due to problems with exec on Windows)"
+)
 
 runScript := {
 val scriptName +: args = spaceDelimited("<arg>").parsed.toSeq
@@ -57,13 +60,28 @@ val isWindows = System
   proc.redirectErrorStream(true)
   proc.inheritIO()
 
-  val prevPath = proc.environment.get("PATH")
+  val pathName = if(isWindows) "Path" else "PATH"
+  val prevPath = proc.environment.get(pathName)
   proc.environment.put(
-    "PATH",
+    pathName,
     s"${scalaBinDir}${File.pathSeparator}${prevPath}"
   )
 
   proc.start().waitFor() match {
+    case 0 => ()
+    case exitCode =>
+      throw new RuntimeException(
+        s"Execution of command failed with code $exitCode"
+      ) with scala.util.control.NoStackTrace
+  }
+}
+
+runExec := {
+  val args = spaceDelimited("<arg>").parsed
+  new ProcessBuilder(args: _*)
+  .inheritIO()
+  .start()
+  .waitFor() match {
     case 0 => ()
     case exitCode =>
       throw new RuntimeException(
