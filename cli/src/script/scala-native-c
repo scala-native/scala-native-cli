@@ -13,10 +13,10 @@ fi
 
 BASE="$(dirname $0)/.."
 PLUGIN="$BASE/lib/nscplugin_$SCALA_VER-$SCALANATIVE_VER.jar"
-CLASSPATH="."
+NATIVELIB=""
 libs="nativelib clib posixlib windowslib auxlib javalib scalalib"
 for lib in $libs; do
-    CLASSPATH="${CLASSPATH}:$BASE/lib/${lib}_native${SCALANATIVE_BIN_VER}_$SCALA_BIN_VER-$SCALANATIVE_VER.jar"
+    NATIVELIB="${NATIVELIB}:$BASE/lib/${lib}_native${SCALANATIVE_BIN_VER}_$SCALA_BIN_VER-$SCALANATIVE_VER.jar"
 done
 
-scalac -classpath "$CLASSPATH" "-Xplugin:$PLUGIN" "$@"
+scalac -classpath ".:$NATIVELIB" "-Xplugin:$PLUGIN" "$@"
