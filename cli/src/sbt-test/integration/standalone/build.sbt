@@ -60,12 +60,20 @@ runScript := {
   proc.redirectErrorStream(true)
   proc.inheritIO()
 
-  val pathName = if (isWindows) "Path" else "PATH"
-  val prevPath = proc.environment.get(pathName)
-  proc.environment.put(
-    pathName,
-    s"${scalaBinDir}${File.pathSeparator}${prevPath}"
-  )
+  // Find name of Path environment, depending on OS/env it might differ in casing
+  // Update existing path or create a new env variable
+  proc.environment.keySet.toArray.collectFirst {
+    case key: String if key.toUpperCase(Locale.ROOT) == "PATH" => key
+  } match {
+    case Some(pathKey) =>
+      val prevPath = proc.environment.get(pathKey)
+      proc.environment.put(
+        pathKey,
+        s"${scalaBinDir}${File.pathSeparator}${prevPath}"
+      )
+    case _ =>
+      proc.environment.put("PATH", scalaBinDir.toString)
+  }
 
   proc.start().waitFor() match {
     case 0 => ()
