@@ -1,5 +1,7 @@
 val crossScalaVersions212 = (13 to 15).map(v => s"2.12.$v")
 val crossScalaVersions213 = (4 to 7).map(v => s"2.13.$v")
+val latestsScalaVersions =
+  Seq(crossScalaVersions212.last, crossScalaVersions213.last)
 
 def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
   case "2.12" => crossScalaVersions212
@@ -21,18 +23,7 @@ inThisBuild(
     scalaNativeVersion := "0.4.2",
     version := scalaNativeVersion.value,
     scalaVersion := crossScalaVersions212.last,
-    crossScalaVersions := {
-      scalaNativeVersion.value match {
-        // No Scala 2.13 artifacts until 0.4.2
-        case "0.4.0" | "0.4.1" =>
-          Seq(crossScalaVersions212.last)
-        case _ =>
-          Seq(
-            crossScalaVersions212.last,
-            crossScalaVersions213.last
-          )
-      }
-    }
+    crossScalaVersions := latestsScalaVersions
   )
 )
 val cliPackLibJars =
@@ -44,6 +35,13 @@ lazy val cli = project
   .enablePlugins(BuildInfoPlugin)
   .settings(
     name := "scala-native-cli",
+    crossScalaVersions := {
+      scalaNativeVersion.value match {
+        // No Scala 2.13 artifacts until 0.4.2
+        case "0.4.0" | "0.4.1" => Seq(crossScalaVersions212.last)
+        case _                 => latestsScalaVersions
+      }
+    },
     scalacOptions += "-Ywarn-unused:imports",
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
@@ -60,21 +58,23 @@ lazy val cli = project
     cliPackSettings
   )
 
-lazy val scriptedTests = project
-  .in(file("scripted"))
+lazy val cliScriptedTests = project
+  .in(file("cliScriptedTests"))
   .enablePlugins(ScriptedPlugin)
   .settings(
+    sbtTestDirectory := (cli / sourceDirectory).value / "sbt-test",
     scalaVersion := crossScalaVersions212.last,
     crossScalaVersions := Seq(scalaVersion.value),
     scriptedLaunchOpts ++= {
       val jarName = (cli / cliAssemblyJarName).value
       val cliPath = (cli / Compile / crossTarget).value / jarName
+      val packDir = (cli / cliPack / crossTarget).value
       Seq(
         "-Xmx1024M",
-        "-Dplugin.version=" + (ThisBuild / scalaNativeVersion).value,
-        "-Dscala.version=" + (ThisBuild / scalaVersion).value,
+        "-Dplugin.version=" + (cli / scalaNativeVersion).value,
+        "-Dscala.version=" + (cli / scalaVersion).value,
         "-Dscala-native-cli=" + cliPath,
-        "-Dscala-native-cli-pack=" + (cliPack / crossTarget).value
+        "-Dscala-native-cli-pack=" + packDir
       )
     },
     scriptedBufferLog := false,
