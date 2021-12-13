@@ -47,7 +47,12 @@ lazy val cli = project
   .enablePlugins(BuildInfoPlugin)
   .settings(
     name := "scala-native-cli",
-    scalacOptions += "-Ywarn-unused:imports",
+    scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value).fold(Seq.empty[String]) {
+        case (2, 11) => Nil
+        case _       => Seq("-Ywarn-unused:imports")
+      }
+    },
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
       "org.scalatest" %% "scalatest" % "3.1.1" % Test,
