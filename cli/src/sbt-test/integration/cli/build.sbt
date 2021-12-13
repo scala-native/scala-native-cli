@@ -8,6 +8,9 @@ import scala.collection.JavaConverters._
 val runCli = inputKey[Unit](
   "Runs scala-native-cli with classpath and selected other options via cli arguments"
 )
+val runExec = inputKey[Unit](
+  "Runs given executable (due to problems with exec on Windows)"
+)
 runCli := {
   val args = spaceDelimited("<arg>").parsed
   val classpath = (Compile / fullClasspath).value.map(_.data.toString())
@@ -26,6 +29,20 @@ runCli := {
   proc.inheritIO()
 
   proc.start().waitFor() match {
+    case 0 => ()
+    case exitCode =>
+      throw new RuntimeException(
+        s"Execution of command failed with code $exitCode"
+      ) with scala.util.control.NoStackTrace
+  }
+}
+
+runExec := {
+  val args = spaceDelimited("<arg>").parsed
+  new ProcessBuilder(args: _*)
+    .inheritIO()
+    .start()
+    .waitFor() match {
     case 0 => ()
     case exitCode =>
       throw new RuntimeException(
