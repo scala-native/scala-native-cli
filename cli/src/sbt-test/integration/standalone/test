@@ -1,5 +1,13 @@
 > runScript scala-native-c Main.scala
 $ exists Main$.nir
+$ exists Foo.nir
+$ exists Foo$.nir 
+
+> runScript scala-native-p Main$ Foo Foo$
+> runScript scala-native-p Main$ --cp . --classpath target --cp IgnoredNotExistingDir
+> runScript scala-native-p --cp @NATIVE_LIB@ java.lang.Runnable
+
+-> runScript scala-native-p not.existing.Class
 
 > runScript scala-native-ld --main Main$ . -o scala-native-out.exe -v -v
 $ exists scala-native-out.exe
