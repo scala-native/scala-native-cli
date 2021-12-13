@@ -4,10 +4,10 @@ object Main {
   }
 }
 
-class Foo{
+class Foo {
   def foo = Foo.foo
 }
 
-object Foo{
+object Foo {
   val foo = "bar"
 }
