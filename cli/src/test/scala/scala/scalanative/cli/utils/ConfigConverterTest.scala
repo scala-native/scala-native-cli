@@ -16,12 +16,12 @@ import scala.scalanative.cli.options.MiscOptions
 class ConfigConverterTest extends AnyFlatSpec {
   val dummyLoggerOptions = LoggerOptions()
   val dummyNativeConfigOptions = NativeConfigOptions()
-  val dummyConfigOptions = ConfigOptions(main = Some("Main$"))
+  val dummyConfigOptions = ConfigOptions(main = Some("Main"))
   val dummyMiscOptions = MiscOptions()
 
   val dummyArguments =
     Seq("A.jar", "B.jar")
-  val dummyMain = "Main$"
+  val dummyMain = "Main"
 
   val dummyCliOptions = CliOptions(
     config = dummyConfigOptions,
