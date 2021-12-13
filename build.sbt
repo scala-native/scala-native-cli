@@ -25,8 +25,8 @@ lazy val cli = project
     scalacOptions += "-Ywarn-unused:imports",
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
-      "org.scalatest" %% "scalatest" % "3.1.1" % Test,
-      "com.github.alexarchambault" %% "case-app" % "2.1.0-M10"
+      "com.github.alexarchambault" %% "case-app" % "2.1.0-M10",
+      "org.scalatest" %% "scalatest" % "3.1.1" % Test
     ),
     patchSourcesSettings,
     buildInfoKeys := Seq[BuildInfoKey](
@@ -137,7 +137,6 @@ lazy val cliPackSettings = Def.settings(
 
     IO.createDirectory(trgBin)
     val scriptDir = (Compile / sourceDirectory).value.getParentFile / "script"
-    println(scriptDir)
     for {
       scriptFile <- IO.listFiles(scriptDir)
       if !scriptFile.getPath.endsWith("~")
