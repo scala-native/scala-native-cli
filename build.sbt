@@ -1,9 +1,7 @@
-val crossScalaVersions211 = Seq("2.11.12")
 val crossScalaVersions212 = (13 to 15).map(v => s"2.12.$v")
 val crossScalaVersions213 = (4 to 7).map(v => s"2.13.$v")
 
 def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
-  case "2.11" => crossScalaVersions211
   case "2.12" => crossScalaVersions212
   case "2.13" => crossScalaVersions213
   case ver =>
@@ -25,12 +23,11 @@ inThisBuild(
     scalaVersion := crossScalaVersions212.last,
     crossScalaVersions := {
       scalaNativeVersion.value match {
-        // No Scala 2.11 or Scala 2.13 artifacts until 0.4.2
+        // No Scala 2.13 artifacts until 0.4.2
         case "0.4.0" | "0.4.1" =>
           Seq(crossScalaVersions212.last)
         case _ =>
           Seq(
-            crossScalaVersions211.last,
             crossScalaVersions212.last,
             crossScalaVersions213.last
           )
@@ -47,19 +44,11 @@ lazy val cli = project
   .enablePlugins(BuildInfoPlugin)
   .settings(
     name := "scala-native-cli",
-    scalacOptions ++= {
-      CrossVersion.partialVersion(scalaVersion.value).fold(Seq.empty[String]) {
-        case (2, 11) => Nil
-        case _       => Seq("-Ywarn-unused:imports")
-      }
-    },
+    scalacOptions += "-Ywarn-unused:imports",
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
       "org.scalatest" %% "scalatest" % "3.1.1" % Test,
-      scalaBinaryVersion.value match {
-        case "2.11" => "com.github.alexarchambault" %% "case-app" % "2.0.0-M9"
-        case _      => "com.github.alexarchambault" %% "case-app" % "2.1.0-M10"
-      }
+      "com.github.alexarchambault" %% "case-app" % "2.1.0-M10"
     ),
     patchSourcesSettings,
     buildInfoKeys := Seq[BuildInfoKey](
