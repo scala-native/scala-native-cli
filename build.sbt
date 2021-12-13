@@ -22,6 +22,7 @@ lazy val cli = project
   .enablePlugins(BuildInfoPlugin, ScriptedPlugin)
   .settings(
     name := "scala-native-cli",
+    Compile/run/mainClass := Some("scala.scalanative.cli.ScalaNativeCli"),
     scalacOptions += "-Ywarn-unused:imports",
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
