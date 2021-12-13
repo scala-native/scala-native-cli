@@ -18,6 +18,6 @@ jobs:
       - name: Test
         run: >
          sbt 'set cli/scalaNativeVersion := "${{matrix.SN}}"'
-         cli/test
-         cli/scripted
+         +cli/test
+         +cliScriptedTests/scripted
         shell: bash
