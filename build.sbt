@@ -42,6 +42,8 @@ lazy val cli = project
         case _                 => latestsScalaVersions
       }
     },
+    Compile / run / mainClass :=
+      Some("scala.scalanative.cli.ScalaNativeCli"),
     scalacOptions += "-Ywarn-unused:imports",
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
@@ -55,6 +57,7 @@ lazy val cli = project
     buildInfoPackage := "scala.scalanative.cli.options",
     cliAssemblyJarName := s"${normalizedName.value}-assembly_${scalaBinaryVersion.value}-${scalaNativeVersion.value}.jar",
     assembly / assemblyJarName := cliAssemblyJarName.value,
+    assembly / mainClass := (Compile / run / mainClass).value,
     cliPackSettings
   )
 
@@ -64,7 +67,6 @@ lazy val cliScriptedTests = project
   .settings(
     sbtTestDirectory := (cli / sourceDirectory).value / "sbt-test",
     scalaVersion := crossScalaVersions212.last,
-    crossScalaVersions := Seq(scalaVersion.value),
     scriptedLaunchOpts ++= {
       val jarName = (cli / cliAssemblyJarName).value
       val cliPath = (cli / Compile / crossTarget).value / jarName
