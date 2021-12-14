@@ -40,8 +40,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     val noArgs = Seq()
     val mainOnlyResult =
       ConfigConverter.convert(dummyCliOptions, dummyMain, noArgs)
-    assert(mainOnlyResult.isLeft)
-    assert(mainOnlyResult.left.get.isInstanceOf[IllegalArgumentException])
+    assert(mainOnlyResult.left.exists(_.isInstanceOf[IllegalArgumentException]))
   }
 
   it should "parse classpath strings correctly" in {
@@ -59,27 +58,23 @@ class ConfigConverterTest extends AnyFlatSpec {
     val config =
       ConfigConverter.convert(dummyCliOptions, dummyMain, classPathStrings)
 
-    assert(config != None)
-    assert(config.right.get.config.classPath.sameElements(expected))
+    assert(config.exists(_.config.classPath.sameElements(expected)))
   }
 
   it should "handle NativeConfig GC correctly" in {
     def gcAssertion(gcString: String, expectedGC: GC) = {
-      val options = CliOptions(
-        dummyConfigOptions,
-        NativeConfigOptions(gc =
-          NativeConfigParserImplicits.gcParser(None, gcString).right.get
-        ),
-        dummyLoggerOptions,
-        dummyMiscOptions
-      )
-      val config =
-        ConfigConverter
+      val parsed = for {
+        gc <- NativeConfigParserImplicits.gcParser(None, gcString)
+        options = CliOptions(
+          dummyConfigOptions,
+          NativeConfigOptions(gc = gc),
+          dummyLoggerOptions,
+          dummyMiscOptions
+        )
+        converted <- ConfigConverter
           .convert(options, dummyMain, dummyArguments)
-          .right
-          .get
-          .config
-      assert(config.compilerConfig.gc == expectedGC)
+      } yield converted.config.gc
+      assert(parsed.contains(expectedGC))
     }
     gcAssertion("immix", GC.immix)
     gcAssertion("commix", GC.commix)
@@ -89,21 +84,17 @@ class ConfigConverterTest extends AnyFlatSpec {
 
   it should "handle NativeConfig Mode correctly" in {
     def modeAssertion(modeString: String, expectedMode: Mode) = {
-      val options = CliOptions(
-        dummyConfigOptions,
-        NativeConfigOptions(mode =
-          NativeConfigParserImplicits.modeParser(None, modeString).right.get
-        ),
-        dummyLoggerOptions,
-        dummyMiscOptions
-      )
-      val config =
-        ConfigConverter
-          .convert(options, dummyMain, dummyArguments)
-          .right
-          .get
-          .config
-      assert(config.compilerConfig.mode == expectedMode)
+      val parsed = for {
+        mode <- NativeConfigParserImplicits.modeParser(None, modeString)
+        options = CliOptions(
+          dummyConfigOptions,
+          NativeConfigOptions(mode = mode),
+          dummyLoggerOptions,
+          dummyMiscOptions
+        )
+        converted <- ConfigConverter.convert(options, dummyMain, dummyArguments)
+      } yield converted.config.compilerConfig.mode
+      assert(parsed.contains(expectedMode))
     }
     modeAssertion("debug", Mode.debug)
     modeAssertion("release-fast", Mode.releaseFast)
@@ -112,21 +103,19 @@ class ConfigConverterTest extends AnyFlatSpec {
 
   it should "handle NativeConfig LTO correctly" in {
     def ltoAssertion(ltoString: String, expectedLto: LTO) = {
-      val options = CliOptions(
-        dummyConfigOptions,
-        NativeConfigOptions(lto =
-          NativeConfigParserImplicits.ltoParser(None, ltoString).right.get
-        ),
-        dummyLoggerOptions,
-        dummyMiscOptions
-      )
-      val config =
-        ConfigConverter
+      val parsed = for {
+        lto <- NativeConfigParserImplicits.ltoParser(None, ltoString)
+        options = CliOptions(
+          dummyConfigOptions,
+          NativeConfigOptions(lto = lto),
+          dummyLoggerOptions,
+          dummyMiscOptions
+        )
+        opts <- ConfigConverter
           .convert(options, dummyMain, dummyArguments)
-          .right
-          .get
-          .config
-      assert(config.compilerConfig.lto == expectedLto)
+      } yield opts.config.compilerConfig.lto
+
+      assert(parsed.contains(expectedLto))
     }
     ltoAssertion("none", LTO.none)
     ltoAssertion("thin", LTO.thin)
@@ -151,10 +140,17 @@ class ConfigConverterTest extends AnyFlatSpec {
     )
 
     val nativeConfig =
-      ConfigConverter.convert(options, dummyMain, dummyArguments).right.get
+      ConfigConverter
+        .convert(options, dummyMain, dummyArguments)
+        .map(_.config.compilerConfig)
+        .fold(
+          fail(_),
+          { config =>
+            assert(config.clang == expectedClangPath)
+            assert(config.clangPP == expectedClangPPPath)
+          }
+        )
 
-    assert(nativeConfig.config.compilerConfig.clang == expectedClangPath)
-    assert(nativeConfig.config.compilerConfig.clangPP == expectedClangPPPath)
   }
 
   it should "parse boolean options as opposite of default" in {
@@ -169,22 +165,23 @@ class ConfigConverterTest extends AnyFlatSpec {
       dummyLoggerOptions,
       dummyMiscOptions
     )
-    val default = ConfigConverter
-      .convert(dummyCliOptions, dummyMain, dummyArguments)
-      .right
-      .get
-      .config
-      .compilerConfig
-    val nonDefault = ConfigConverter
-      .convert(options, dummyMain, dummyArguments)
-      .right
-      .get
-      .config
-      .compilerConfig
+    val parsed = for {
+      default <- ConfigConverter
+        .convert(dummyCliOptions, dummyMain, dummyArguments)
+        .map(_.config.compilerConfig)
+      nonDefault <- ConfigConverter
+        .convert(options, dummyMain, dummyArguments)
+        .map(_.config.compilerConfig)
+    } yield (default, nonDefault)
 
-    assert(nonDefault.check != default.check)
-    assert(nonDefault.dump != default.dump)
-    assert(nonDefault.optimize != default.optimize)
-    assert(nonDefault.linkStubs != default.linkStubs)
+    parsed.fold(
+      fail(_),
+      { case (default, nonDefault) =>
+        assert(nonDefault.check != default.check)
+        assert(nonDefault.dump != default.dump)
+        assert(nonDefault.optimize != default.optimize)
+        assert(nonDefault.linkStubs != default.linkStubs)
+      }
+    )
   }
 }

@@ -9,7 +9,7 @@ class LinktimePropertyParserTest extends AnyFlatSpec {
     val expected =
       Map[String, Any]("isTesting" -> "true", "isNotTesting" -> "False")
     val obtained = LinktimePropertyParser.parseAll(input)
-    assert(obtained.right.get == expected)
+    assert(obtained.contains(expected))
   }
 
   it should "return error on undefined string patterns" in {

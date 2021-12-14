@@ -11,6 +11,17 @@ val runCli = inputKey[Unit](
 val runExec = inputKey[Unit](
   "Runs given executable (due to problems with exec on Windows)"
 )
+
+scalaVersion := {
+  val scalaVersion = System.getProperty("scala.version")
+  if (scalaVersion == null)
+    throw new RuntimeException(
+      """|The system property 'scala.version' is not defined.
+         |Specify this property using the scriptedLaunchOpts -D.""".stripMargin
+    )
+  else scalaVersion
+}
+
 runCli := {
   val args = spaceDelimited("<arg>").parsed
   val classpath = (Compile / fullClasspath).value.map(_.data.toString())

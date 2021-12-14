@@ -1,4 +1,16 @@
-val crossScalaNative212 = Seq("2.12.13", "2.12.14", "2.12.15")
+val crossScalaVersions212 = (13 to 15).map(v => s"2.12.$v")
+val crossScalaVersions213 = (4 to 7).map(v => s"2.13.$v")
+val latestsScalaVersions =
+  Seq(crossScalaVersions212.last, crossScalaVersions213.last)
+
+def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
+  case "2.12" => crossScalaVersions212
+  case "2.13" => crossScalaVersions213
+  case ver =>
+    throw new IllegalArgumentException(
+      s"Unsupported binary scala version `${ver}`"
+    )
+}
 
 val scalaNativeVersion =
   settingKey[String]("Version of Scala Native for which to build to CLI")
@@ -8,9 +20,10 @@ val cliAssemblyJarName = settingKey[String]("Name of created assembly jar")
 inThisBuild(
   Def.settings(
     organization := "org.scala-native",
-    scalaVersion := crossScalaNative212.last,
-    scalaNativeVersion := "0.4.0",
-    version := scalaNativeVersion.value
+    scalaNativeVersion := "0.4.2",
+    version := scalaNativeVersion.value,
+    scalaVersion := crossScalaVersions212.last,
+    crossScalaVersions := latestsScalaVersions
   )
 )
 val cliPackLibJars =
@@ -19,9 +32,16 @@ val cliPack = taskKey[File]("Pack the CLI for the current configuration")
 
 lazy val cli = project
   .in(file("cli"))
-  .enablePlugins(BuildInfoPlugin, ScriptedPlugin)
+  .enablePlugins(BuildInfoPlugin)
   .settings(
     name := "scala-native-cli",
+    crossScalaVersions := {
+      scalaNativeVersion.value match {
+        // No Scala 2.13 artifacts until 0.4.2
+        case "0.4.0" | "0.4.1" => Seq(crossScalaVersions212.last)
+        case _                 => latestsScalaVersions
+      }
+    },
     Compile / run / mainClass :=
       Some("scala.scalanative.cli.ScalaNativeCli"),
     scalacOptions += "-Ywarn-unused:imports",
@@ -38,23 +58,36 @@ lazy val cli = project
     cliAssemblyJarName := s"${normalizedName.value}-assembly_${scalaBinaryVersion.value}-${scalaNativeVersion.value}.jar",
     assembly / assemblyJarName := cliAssemblyJarName.value,
     assembly / mainClass := (Compile / run / mainClass).value,
+    cliPackSettings
+  )
+
+lazy val cliScriptedTests = project
+  .in(file("cliScriptedTests"))
+  .enablePlugins(ScriptedPlugin)
+  .settings(
+    sbtTestDirectory := (cli / sourceDirectory).value / "sbt-test",
+    scalaVersion := crossScalaVersions212.last,
     scriptedLaunchOpts ++= {
-      val jarName = cliAssemblyJarName.value
-      val cliPath = (Compile / crossTarget).value / jarName
+      val jarName = (cli / cliAssemblyJarName).value
+      val cliPath = (cli / Compile / crossTarget).value / jarName
+      val packDir = (cli / cliPack / crossTarget).value
       Seq(
         "-Xmx1024M",
-        "-Dplugin.version=" + scalaNativeVersion.value,
+        "-Dplugin.version=" + (cli / scalaNativeVersion).value,
+        "-Dscala.version=" + (cli / scalaVersion).value,
         "-Dscala-native-cli=" + cliPath,
-        "-Dscala-native-cli-pack=" + (cliPack / crossTarget).value
+        "-Dscala-native-cli-pack=" + packDir
       )
     },
     scriptedBufferLog := false,
     scriptedDependencies := {
       scriptedDependencies
-        .dependsOn(assembly, cliPack)
+        .dependsOn(
+          cli / assembly,
+          cli / cliPack
+        )
         .value
-    },
-    cliPackSettings
+    }
   )
 
 lazy val cliPackSettings = Def.settings(
@@ -62,11 +95,11 @@ lazy val cliPackSettings = Def.settings(
     val s = streams.value
     val log = s.log
 
-    val scalaNativeOrg = "org.scala-native"
+    val scalaNativeOrg = organization.value
     val scalaBinVer = scalaBinaryVersion.value
     val snVer = scalaNativeVersion.value
 
-    val scalaFullVers = crossScalaNative212
+    val scalaFullVers = scalaReleasesForBinaryVersion(scalaBinVer)
     val cliAssemblyJar = assembly.value
 
     // Standard modules needed for linking of Scala Native
