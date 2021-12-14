@@ -9,6 +9,10 @@ case class POptions(
     @ExtraName("cp")
     @ValueDescription("<path>")
     classpath: List[String] = "." :: Nil,
+    @HelpMessage(
+      "Instead of deserializing classes/objects, deserialize NIR files. Requires passing NIR files as arguments"
+    )
+    nirFiles: Boolean = false,
     @Recurse
     misc: MiscOptions
 )
