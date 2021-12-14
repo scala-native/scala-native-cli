@@ -1,0 +1,9 @@
+#! /bin/sh
+
+SCALA_BIN_VER="@SCALA_BIN_VER@"
+SCALANATIVE_VER="@SCALANATIVE_VER@"
+
+BASE="$(dirname $0)/.."
+CLILIB="$BASE/lib/scala-native-cli-assembly_$SCALA_BIN_VER-$SCALANATIVE_VER.jar"
+
+scala -classpath "$CLILIB" scala.scalanative.cli.ScalaNativeP "$@"

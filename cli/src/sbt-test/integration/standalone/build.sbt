@@ -14,7 +14,7 @@ val runExec = inputKey[Unit](
 )
 
 runScript := {
-  val scriptName +: args = spaceDelimited("<arg>").parsed.toSeq
+  val scriptName +: rawArgs = spaceDelimited("<arg>").parsed.toSeq
   val cliPackDir = System.getProperty("scala-native-cli-pack")
   val isWindows = System
     .getProperty("os.name", "unknown")
@@ -48,6 +48,15 @@ runScript := {
   }(Set(scalaBinDir))
 
   val script = Paths.get(cliPackDir, "bin", scriptName).toString
+  val args = rawArgs.map {
+    case "@NATIVE_LIB@" =>
+      Paths
+        .get(cliPackDir, "lib")
+        .toFile()
+        .listFiles()
+        .mkString(File.pathSeparator)
+    case arg => arg
+  }
   val proc =
     if (isWindows)
       new ProcessBuilder(
