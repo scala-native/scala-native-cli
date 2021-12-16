@@ -13,6 +13,8 @@ import java.nio.file.Path
 import scala.scalanative.io.VirtualDirectory
 import scala.scalanative.nir.serialization.deserializeBinary
 import scala.scalanative.nir.Defn
+import scala.annotation.tailrec
+import java.nio.ByteBuffer
 
 object ScalaNativeP extends CaseApp[POptions] {
 
@@ -70,8 +72,8 @@ object ScalaNativeP extends CaseApp[POptions] {
   ): Unit = {
 
     Scope { implicit scope =>
-      val cp = classpath.map(VirtualDirectory.real(_))
-      def isVirtualDirPathEqual(
+      val cp = classpath.toStream.map(VirtualDirectory.real(_))
+      def virtualDirPathMatches(
           virtualPath: Path,
           regularPath: Path
       ): Boolean = {
@@ -79,23 +81,25 @@ object ScalaNativeP extends CaseApp[POptions] {
         val relativeInJar = virtualPath.toString().stripPrefix("/")
         relativeInJar == regularPath.toString()
       }
-      def virtualDirHasPath(dir: VirtualDirectory, path: Path): Boolean = {
-        dir.files.exists(isVirtualDirPathEqual(_, path))
+      @tailrec
+      def findAndRead(
+          classpath: Stream[VirtualDirectory],
+          path: Path
+      ): Option[ByteBuffer] = {
+        classpath match {
+          case Stream.Empty => None
+          case dir #:: tail =>
+            val found = dir.files
+              .find(virtualDirPathMatches(_, path))
+              .map(dir.read(_))
+            if (found.isEmpty) findAndRead(tail, path)
+            else found
+        }
       }
       for {
         fileName <- args
         path = Paths.get(fileName).normalize()
-        content <- cp
-          .collectFirst {
-            case d if virtualDirHasPath(d, path) =>
-              // Paths in VirtualDirectories have a seperate, incomparable FileSystem
-              // Correct path has to be chosen from the read ones
-              val correctedPath = d.files.find { p =>
-                val relativeInJar = p.toString().stripPrefix("/")
-                relativeInJar == path.toString()
-              }
-              d.read(correctedPath.get)
-          }
+        content <- findAndRead(cp, path)
           .orElse(fail(s"Not found file with name `${fileName}`"))
       } {
         val defns = deserializeBinary(content, fileName)
