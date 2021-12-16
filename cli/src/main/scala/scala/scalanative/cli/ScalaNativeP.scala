@@ -12,7 +12,7 @@ import scala.scalanative.linker.ClassLoader
 import java.nio.file.Path
 import scala.scalanative.io.VirtualDirectory
 import scala.scalanative.nir.serialization.deserializeBinary
-import java.nio.file.Files
+import scala.scalanative.nir.Defn
 
 object ScalaNativeP extends CaseApp[POptions] {
 
@@ -23,7 +23,7 @@ object ScalaNativeP extends CaseApp[POptions] {
     }
 
     if (args.all.isEmpty) {
-      if (options.nirFiles)
+      if (options.fromPath)
         System.err.println("Required NIR file not specified.")
       else
         System.err.println("Required class/object not specified.")
@@ -39,11 +39,11 @@ object ScalaNativeP extends CaseApp[POptions] {
       System.err.println(s"Ignoring non existing path: $path")
     }
 
-    if (options.nirFiles) deserializeFiles(classpath, args.all)
-    else deserializeClassesOrObjects(classpath, args.all)
+    if (options.fromPath) printFromFiles(classpath, args.all)
+    else printFromNames(classpath, args.all)
   }
 
-  private def deserializeClassesOrObjects(
+  private def printFromNames(
       classpath: List[Path],
       args: Seq[String]
   ): Unit = {
@@ -57,75 +57,60 @@ object ScalaNativeP extends CaseApp[POptions] {
         className <- args
       } {
         classLoader.load(Global.Top(className)) match {
-          case Some(defns) =>
-            defns
-              .sortBy(_.name.mangle)
-              .foreach { d =>
-                println(d.show)
-                println()
-              }
+          case Some(defns) => printNIR(defns)
           case None => fail(s"Not found class/object with name `${className}`")
         }
       }
     }
   }
 
-  private def deserializeFiles(
+  private def printFromFiles(
       classpath: List[Path],
       args: Seq[String]
   ): Unit = {
 
-    case class VirtDirFile(file: Path, virtDir: VirtualDirectory)
-
-    // Paths obtained from VirtualDirectory.files() are decoded as absolute,
-    // but actually are relative to the classpath.
-    // Users are expected to pass relative paths, like in javap and scalajsp.
-    // This is a workaround to standardize the two to allow comparisons.
-    // It is worth noting that it's impossible to pass actual absolute directory here
-    // and lose that data as it should be impossible for a child of a directory to be root.
-    def normalizedVirtDirPathString(path: Path) = {
-      val fileString = path.toString()
-      if (path.isAbsolute()) fileString.substring(1)
-      else fileString
-    }
-
     Scope { implicit scope =>
-      val allVirtDirFiles =
-        for {
-          path <- classpath
-          virtDir = VirtualDirectory.real(path)
-          file <- virtDir.files
-        } yield VirtDirFile(file, virtDir)
-
+      val cp = classpath.map(VirtualDirectory.real(_))
+      def isVirtualDirPathEqual(
+          virtualPath: Path,
+          regularPath: Path
+      ): Boolean = {
+        // Paths in jars are always using Unix path denotation
+        val relativeInJar = virtualPath.toString().stripPrefix("/")
+        relativeInJar == regularPath.toString()
+      }
+      def virtualDirHasPath(dir: VirtualDirectory, path: Path): Boolean = {
+        dir.files.exists(isVirtualDirPathEqual(_, path))
+      }
       for {
         fileName <- args
-      } {
-
-        val foundFileMaybe = allVirtDirFiles.find {
-          case VirtDirFile(file, virtDir) =>
-            val compString = normalizedVirtDirPathString(file)
-            !Files.isDirectory(file) && compString == fileName
-        }
-
-        foundFileMaybe match {
-          case Some(VirtDirFile(file, virtDir)) =>
-            // Used for an internal NIR compatibility assertion message
-            val bufferName = file.getFileName().toString()
-
-            val fileByteBuffer = virtDir.read(file)
-            val defns = deserializeBinary(fileByteBuffer, bufferName)
-
-            defns
-              .sortBy(_.name.mangle)
-              .foreach { d =>
-                println(d.show)
-                println()
+        path = Paths.get(fileName).normalize()
+        content <- cp
+          .collectFirst {
+            case d if virtualDirHasPath(d, path) =>
+              // Paths in VirtualDirectories have a seperate, incomparable FileSystem
+              // Correct path has to be chosen from the read ones
+              val correctedPath = d.files.find { p =>
+                val relativeInJar = p.toString().stripPrefix("/")
+                relativeInJar == path.toString()
               }
-          case None => fail(s"Not found file with name `${fileName}`")
-        }
+              d.read(correctedPath.get)
+          }
+          .orElse(fail(s"Not found file with name `${fileName}`"))
+      } {
+        val defns = deserializeBinary(content, fileName)
+        printNIR(defns)
       }
     }
   }
+
+  private def printNIR(defns: Seq[Defn]) =
+    defns
+      .sortBy(_.name.mangle)
+      .foreach { d =>
+        println(d.show)
+        println()
+      }
 
   private def fail(msg: String): Nothing = {
     Console.err.println(msg)

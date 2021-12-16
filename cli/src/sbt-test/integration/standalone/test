@@ -9,12 +9,12 @@ $ exists Foo$.nir
 
 -> runScript scala-native-p not.existing.Class
 
-> runScript scala-native-p --nir-files Foo.nir
--> runScript scala-native-p --nir-files notExisting.nir
+> runScript scala-native-p --from-path Foo.nir
+-> runScript scala-native-p --from-path notExisting.nir
 
 > runExec jar cf inside.jar Foo.class Foo.nir Foo$.class Foo$.nir
-> runScript scala-native-p --cp inside.jar --nir-files Foo.nir Foo$.nir
--> runScript scala-native-p --cp inside.jar --nir-files Main$.nir
+> runScript scala-native-p --cp inside.jar --from-path Foo.nir Foo$.nir
+-> runScript scala-native-p --cp inside.jar --from-path Main$.nir
 
 > runScript scala-native-ld --main Main . -o scala-native-out.exe -v -v
 $ exists scala-native-out.exe
