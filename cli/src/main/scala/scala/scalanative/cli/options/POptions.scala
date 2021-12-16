@@ -9,6 +9,10 @@ case class POptions(
     @ExtraName("cp")
     @ValueDescription("<path>")
     classpath: List[String] = "." :: Nil,
+    @HelpMessage(
+      "Instead of passing class/object names, pass NIR file paths."
+    )
+    fromPath: Boolean = false,
     @Recurse
     misc: MiscOptions
 )
