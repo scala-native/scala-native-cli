@@ -4,16 +4,16 @@ import scala.scalanative.build.Build
 import scala.scalanative.util.Scope
 import scala.scalanative.cli.utils.ConfigConverter
 import scala.scalanative.cli.utils.NativeConfigParserImplicits._
-import scala.scalanative.cli.options.CliOptions
+import scala.scalanative.cli.options.LinkerOptions
 import caseapp.core.app.CaseApp
 import caseapp.core.RemainingArgs
 import scala.scalanative.cli.options.BuildInfo
 
-object ScalaNativeCli extends CaseApp[CliOptions] {
+object ScalaNativeLd extends CaseApp[LinkerOptions] {
 
   override def ignoreUnrecognized: Boolean = true
 
-  def run(options: CliOptions, args: RemainingArgs) = {
+  def run(options: LinkerOptions, args: RemainingArgs) = {
     if (options.misc.version) {
       println(BuildInfo.nativeVersion)
     } else if (options.config.main.isEmpty) {

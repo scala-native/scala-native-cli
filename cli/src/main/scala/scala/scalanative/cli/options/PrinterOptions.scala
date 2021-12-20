@@ -2,9 +2,10 @@ package scala.scalanative.cli.options
 
 import caseapp._
 
+@AppName("ScalaNativeP")
 @ProgName("scala-native-p")
 @ArgsName("Class names")
-case class POptions(
+case class PrinterOptions(
     @HelpMessage("Specify where to find user class files")
     @ExtraName("cp")
     @ValueDescription("<path>")

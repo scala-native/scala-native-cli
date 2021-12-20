@@ -2,12 +2,12 @@ package scala.scalanative.cli.utils
 
 import scala.scalanative.build.NativeConfig
 
-import _root_.scala.scalanative.cli.options.CliOptions
+import _root_.scala.scalanative.cli.options.LinkerOptions
 import scala.util.Try
 
 private[utils] object VersionSpecificOptionsIncluder {
   def withVersionSpecificOptions(
-      options: CliOptions,
+      options: LinkerOptions,
       baseNativeConfig: NativeConfig
   ): Either[Throwable, NativeConfig] = {
     generateNativeConfigWithLTP(options, baseNativeConfig).map {
@@ -15,7 +15,7 @@ private[utils] object VersionSpecificOptionsIncluder {
     }
   }
   private def generateNativeConfigWithLTP(
-      options: CliOptions,
+      options: LinkerOptions,
       baseNativeConfig: NativeConfig
   ): Either[Throwable, NativeConfig] = {
     LinktimePropertyParser

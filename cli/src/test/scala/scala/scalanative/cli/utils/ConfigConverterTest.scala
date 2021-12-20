@@ -3,7 +3,7 @@ package scala.scalanative.cli
 import org.scalatest.flatspec.AnyFlatSpec
 import java.nio.file.Paths
 import scala.scalanative.cli.utils.ConfigConverter
-import scala.scalanative.cli.options.CliOptions
+import scala.scalanative.cli.options.LinkerOptions
 import scala.scalanative.cli.options.LoggerOptions
 import scala.scalanative.cli.options.NativeConfigOptions
 import scala.scalanative.cli.options.ConfigOptions
@@ -23,7 +23,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     Seq("A.jar", "B.jar")
   val dummyMain = "Main"
 
-  val dummyCliOptions = CliOptions(
+  val dummyCliOptions = LinkerOptions(
     config = dummyConfigOptions,
     nativeConfig = dummyNativeConfigOptions,
     logger = dummyLoggerOptions,
@@ -65,7 +65,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     def gcAssertion(gcString: String, expectedGC: GC) = {
       val parsed = for {
         gc <- NativeConfigParserImplicits.gcParser(None, gcString)
-        options = CliOptions(
+        options = LinkerOptions(
           dummyConfigOptions,
           NativeConfigOptions(gc = gc),
           dummyLoggerOptions,
@@ -86,7 +86,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     def modeAssertion(modeString: String, expectedMode: Mode) = {
       val parsed = for {
         mode <- NativeConfigParserImplicits.modeParser(None, modeString)
-        options = CliOptions(
+        options = LinkerOptions(
           dummyConfigOptions,
           NativeConfigOptions(mode = mode),
           dummyLoggerOptions,
@@ -105,7 +105,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     def ltoAssertion(ltoString: String, expectedLto: LTO) = {
       val parsed = for {
         lto <- NativeConfigParserImplicits.ltoParser(None, ltoString)
-        options = CliOptions(
+        options = LinkerOptions(
           dummyConfigOptions,
           NativeConfigOptions(lto = lto),
           dummyLoggerOptions,
@@ -129,7 +129,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     val expectedClangPath = Paths.get(clangString)
     val expectedClangPPPath = Paths.get(clangPPString)
 
-    val options = CliOptions(
+    val options = LinkerOptions(
       dummyConfigOptions,
       NativeConfigOptions(
         clang = Some(clangString),
@@ -154,7 +154,7 @@ class ConfigConverterTest extends AnyFlatSpec {
   }
 
   it should "parse boolean options as opposite of default" in {
-    val options = CliOptions(
+    val options = LinkerOptions(
       dummyConfigOptions,
       NativeConfigOptions(
         check = true,

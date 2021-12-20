@@ -2,10 +2,10 @@ package scala.scalanative.cli.options
 
 import caseapp._
 
-@AppName("ScalaNativeCli")
-@ProgName("scala-native-cli")
+@AppName("ScalaNativeLd")
+@ProgName("scala-native-ld")
 @ArgsName("classpath")
-case class CliOptions(
+case class LinkerOptions(
     @Recurse
     config: ConfigOptions,
     @Recurse
