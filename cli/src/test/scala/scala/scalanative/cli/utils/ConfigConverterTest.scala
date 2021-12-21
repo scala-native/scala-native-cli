@@ -23,7 +23,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     Seq("A.jar", "B.jar")
   val dummyMain = "Main"
 
-  val dummyCliOptions = LinkerOptions(
+  val dummyLinkerOptions = LinkerOptions(
     config = dummyConfigOptions,
     nativeConfig = dummyNativeConfigOptions,
     logger = dummyLoggerOptions,
@@ -32,14 +32,14 @@ class ConfigConverterTest extends AnyFlatSpec {
 
   "ArgParser" should "parse default options" in {
     val config =
-      ConfigConverter.convert(dummyCliOptions, dummyMain, dummyArguments)
+      ConfigConverter.convert(dummyLinkerOptions, dummyMain, dummyArguments)
     assert(config.isRight)
   }
 
   it should "report incomplete arguments" in {
     val noArgs = Seq()
     val mainOnlyResult =
-      ConfigConverter.convert(dummyCliOptions, dummyMain, noArgs)
+      ConfigConverter.convert(dummyLinkerOptions, dummyMain, noArgs)
     assert(mainOnlyResult.left.exists(_.isInstanceOf[IllegalArgumentException]))
   }
 
@@ -56,7 +56,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     )
 
     val config =
-      ConfigConverter.convert(dummyCliOptions, dummyMain, classPathStrings)
+      ConfigConverter.convert(dummyLinkerOptions, dummyMain, classPathStrings)
 
     assert(config.exists(_.config.classPath.sameElements(expected)))
   }
@@ -167,7 +167,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     )
     val parsed = for {
       default <- ConfigConverter
-        .convert(dummyCliOptions, dummyMain, dummyArguments)
+        .convert(dummyLinkerOptions, dummyMain, dummyArguments)
         .map(_.config.compilerConfig)
       nonDefault <- ConfigConverter
         .convert(options, dummyMain, dummyArguments)
