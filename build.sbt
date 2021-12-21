@@ -23,7 +23,22 @@ inThisBuild(
     scalaNativeVersion := "0.4.2",
     version := scalaNativeVersion.value,
     scalaVersion := crossScalaVersions212.last,
-    crossScalaVersions := latestsScalaVersions
+    crossScalaVersions := latestsScalaVersions,
+    homepage := Some(url("http://www.scala-native.org")),
+    startYear := Some(2021),
+    licenses := Seq(
+      "BSD-like" -> url(
+        "https://github.com/scala-native/scala-native-cli/blob/main/LICENSE"
+      )
+    ),
+    scmInfo := Some(
+      ScmInfo(
+        browseUrl = url("https://github.com/scala-native/scala-native-cli"),
+        connection = "scm:git:git@github.com:scala-native/scala-native-cli.git",
+        devConnection =
+          Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
+      )
+    )
   )
 )
 val cliPackLibJars =
@@ -58,7 +73,8 @@ lazy val cli = project
     cliAssemblyJarName := s"${normalizedName.value}-assembly_${scalaBinaryVersion.value}-${scalaNativeVersion.value}.jar",
     assembly / assemblyJarName := cliAssemblyJarName.value,
     assembly / mainClass := (Compile / run / mainClass).value,
-    cliPackSettings
+    cliPackSettings,
+    publishSettings
   )
 
 lazy val cliScriptedTests = project
@@ -218,3 +234,45 @@ lazy val patchSourcesSettings = {
     )
   )
 }
+
+lazy val publishSettings = Def.settings(
+  Compile / publishArtifact := true,
+  Test / publishArtifact := false,
+  publishMavenStyle := true,
+  pomIncludeRepository := (_ => false),
+  publishTo := {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot.value)
+      Some("snapshots" at nexus + "content/repositories/snapshots")
+    else
+      Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  },
+  credentials ++= {
+    for {
+      realm <- sys.env.get("MAVEN_REALM")
+      domain <- sys.env.get("MAVEN_DOMAIN")
+      user <- sys.env.get("MAVEN_USER")
+      password <- sys.env.get("MAVEN_PASSWORD")
+    } yield Credentials(realm, domain, user, password)
+  }.toSeq,
+  developers ++= List(
+    Developer(
+      email = "wmazur@virtuslab.com",
+      id = "wmazur",
+      name = "Wojciech Mazur",
+      url = url("https://github.com/WojciechMazur")
+    ),
+    Developer(
+      email = "jchyb@virtuslab.com",
+      id = "jchyb",
+      name = "Jan Chyb",
+      url = url("https://github.com/jchyb")
+    )
+  ),
+  pomExtra := (
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/scala-native/scala-native-cli/issues</url>
+      </issueManagement>
+  )
+)
