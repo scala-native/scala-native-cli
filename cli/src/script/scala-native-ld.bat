@@ -12,4 +12,4 @@ set CLILIB=%BASE%\scala-native-cli-assembly_%SCALA_BIN_VER%-%SCALANATIVE_VER%.ja
 set PLUGIN=%BASE%\nscplugin_%SCALA_VER%-%SCALANATIVE_VER%.jar
 set NATIVELIB=%BASE%\nativelib%SUFFIX% %BASE%\clib%SUFFIX% %BASE%\posixlib%SUFFIX% %BASE%\windowslib%SUFFIX% %BASE%\auxlib%SUFFIX% %BASE%\javalib%SUFFIX% %BASE%\scalalib%SUFFIX%
 
-scala -classpath %CLILIB% scala.scalanative.cli.ScalaNativeCli  %* %NATIVELIB%
+scala -classpath %CLILIB% scala.scalanative.cli.ScalaNativeLd  %* %NATIVELIB%

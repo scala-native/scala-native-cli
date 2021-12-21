@@ -16,9 +16,9 @@ import scala.scalanative.nir.Defn
 import scala.annotation.tailrec
 import java.nio.ByteBuffer
 
-object ScalaNativeP extends CaseApp[POptions] {
+object ScalaNativeP extends CaseApp[PrinterOptions] {
 
-  def run(options: POptions, args: RemainingArgs): Unit = {
+  def run(options: PrinterOptions, args: RemainingArgs): Unit = {
     if (options.misc.version) {
       println(BuildInfo.nativeVersion)
       exit(0)

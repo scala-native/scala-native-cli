@@ -58,7 +58,7 @@ lazy val cli = project
       }
     },
     Compile / run / mainClass :=
-      Some("scala.scalanative.cli.ScalaNativeCli"),
+      Some("scala.scalanative.cli.ScalaNativeLd"),
     scalacOptions += "-Ywarn-unused:imports",
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,

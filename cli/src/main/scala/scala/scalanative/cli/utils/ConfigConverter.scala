@@ -6,7 +6,7 @@ import scala.scalanative.build.Discover
 import java.nio.file.Paths
 import java.nio.file.Path
 import scala.util.Try
-import scala.scalanative.cli.options.CliOptions
+import scala.scalanative.cli.options.LinkerOptions
 import caseapp.Tag
 
 case class BuildOptions(
@@ -17,7 +17,7 @@ case class BuildOptions(
 object ConfigConverter {
 
   def convert(
-      options: CliOptions,
+      options: LinkerOptions,
       main: String,
       classpath: Seq[String]
   ): Either[Throwable, BuildOptions] = {
@@ -37,7 +37,7 @@ object ConfigConverter {
   }
 
   private def generateNativeConfig(
-      options: CliOptions
+      options: LinkerOptions
   ): Either[Throwable, NativeConfig] = {
 
     def toPathOrDiscover(
@@ -73,7 +73,7 @@ object ConfigConverter {
   }
 
   private def generateConfig(
-      options: CliOptions,
+      options: LinkerOptions,
       main: String,
       classPath: Seq[String]
   ): Either[Throwable, Config] = {
