@@ -1,11 +1,13 @@
 val crossScalaVersions212 = (13 to 15).map(v => s"2.12.$v")
 val crossScalaVersions213 = (4 to 7).map(v => s"2.13.$v")
-val latestsScalaVersions =
-  Seq(crossScalaVersions212.last, crossScalaVersions213.last)
+val crossScalaVersions3 = Seq("3.1.0")
+val latestsScalaVersions = Seq(crossScalaVersions212, crossScalaVersions213, crossScalaVersions3)
+    .map(_.last)
 
 def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
   case "2.12" => crossScalaVersions212
   case "2.13" => crossScalaVersions213
+  case "3"    => crossScalaVersions3
   case ver =>
     throw new IllegalArgumentException(
       s"Unsupported binary scala version `${ver}`"
@@ -38,8 +40,7 @@ inThisBuild(
         devConnection =
           Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
       )
-    ),
-    resolvers += Resolver.sonatypeRepo("snapshots")
+    )
   )
 )
 val cliPackLibJars =
@@ -57,8 +58,8 @@ lazy val cli = project
     scalacOptions += "-Ywarn-unused:imports",
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
-      "com.github.alexarchambault" %% "case-app" % "2.1.0-M10",
-      "org.scalatest" %% "scalatest" % "3.1.1" % Test
+      "com.github.alexarchambault" %% "case-app" % "2.1.0-M10" cross(CrossVersion.for3Use2_13),
+      "org.scalatest" %% "scalatest" % "3.1.1" % Test cross(CrossVersion.for3Use2_13)
     ),
     buildInfoKeys := Seq[BuildInfoKey](
       "nativeVersion" -> scalaNativeVersion.value
@@ -111,6 +112,7 @@ lazy val cliPackSettings = Def.settings(
 
     val scalaFullVers = scalaReleasesForBinaryVersion(scalaBinVer)
     val cliAssemblyJar = assembly.value
+    val nativeBinVersion = ScalaNativeCrossVersion.binaryVersion(snVer)
 
     // Standard modules needed for linking of Scala Native
     val stdLibModuleIDs = Seq(
@@ -122,12 +124,17 @@ lazy val cliPackSettings = Def.settings(
       "auxlib",
       "scalalib"
     ).map { lib =>
-      val nativeBinVersion = ScalaNativeCrossVersion.binaryVersion(snVer)
       scalaNativeOrg % s"${lib}_native${nativeBinVersion}_${scalaBinVer}" % snVer
+    }
+    val scala3ModulesIDs = scalaBinVer match {
+      case "3" => Seq("scala3lib").map{lib =>
+        scalaNativeOrg % s"${lib}_native${nativeBinVersion}_${scalaBinVer}" % snVer
+      }
+      case _ => Nil
     }
     val compilerPluginModuleIDs =
       scalaFullVers.map(v => scalaNativeOrg % s"nscplugin_$v" % snVer)
-    val allModuleIDs = (stdLibModuleIDs ++ compilerPluginModuleIDs).toVector
+    val allModuleIDs = (stdLibModuleIDs ++ scala3ModulesIDs ++ compilerPluginModuleIDs).toVector
     val allModuleIDsIntransitive = allModuleIDs.map(_.intransitive())
 
     val resolvedLibJars = {
