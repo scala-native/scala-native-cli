@@ -81,6 +81,14 @@ object ScalaNativeP extends CaseApp[PrinterOptions] {
         val relativeInJar = virtualPath.toString().stripPrefix("/")
         relativeInJar == regularPath.toString()
       }
+
+      def tryReadDirectly(p: Path): Option[ByteBuffer] = {
+        val fileName = p.getFileName()
+        val dir = VirtualDirectory.real(p.getParent())
+        if (dir.contains(fileName)) Some(dir.read(fileName))
+        else None
+      }
+
       @tailrec
       def findAndRead(
           classpath: Stream[VirtualDirectory],
@@ -99,7 +107,9 @@ object ScalaNativeP extends CaseApp[PrinterOptions] {
       for {
         fileName <- args
         path = Paths.get(fileName).normalize()
-        content <- findAndRead(cp, path)
+        content <- 
+          tryReadDirectly(path)
+          .orElse(findAndRead(cp, path))
           .orElse(fail(s"Not found file with name `${fileName}`"))
       } {
         val defns = deserializeBinary(content, fileName)
@@ -107,6 +117,7 @@ object ScalaNativeP extends CaseApp[PrinterOptions] {
       }
     }
   }
+  
 
   private def printNIR(defns: Seq[Defn]) =
     defns
