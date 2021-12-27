@@ -40,7 +40,8 @@ inThisBuild(
         devConnection =
           Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
       )
-    )
+    ),
+    resolvers += Resolver.sonatypeRepo("snapshots")
   )
 )
 val cliPackLibJars =
