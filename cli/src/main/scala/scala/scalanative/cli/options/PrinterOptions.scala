@@ -1,19 +1,9 @@
 package scala.scalanative.cli.options
 
-import caseapp._
-
-@AppName("ScalaNativeP")
-@ProgName("scala-native-p")
-@ArgsName("Class names")
 case class PrinterOptions(
-    @HelpMessage("Specify where to find user class files")
-    @ExtraName("cp")
-    @ValueDescription("<path>")
+    classNames: List[String] = Nil,
     classpath: List[String] = "." :: Nil,
-    @HelpMessage(
-      "Instead of passing class/object names, pass NIR file paths."
-    )
+    usingDefaultClassPath: Boolean = true,
     fromPath: Boolean = false,
-    @Recurse
-    misc: MiscOptions
+    misc: MiscOptions = MiscOptions()
 )
