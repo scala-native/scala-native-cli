@@ -58,7 +58,6 @@ lazy val cli = project
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
       "com.github.scopt" %% "scopt" % "4.0.1",
-      "com.github.alexarchambault" %% "case-app" % "2.1.0-M10",
       "org.scalatest" %% "scalatest" % "3.1.1" % Test
     ),
     buildInfoKeys := Seq[BuildInfoKey](

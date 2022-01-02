@@ -63,16 +63,16 @@ class ConfigConverterTest extends AnyFlatSpec {
 
   it should "handle NativeConfig GC correctly" in {
     def gcAssertion(gcString: String, expectedGC: GC) = {
-      val parsed = for {
-        gc <- NativeConfigParserImplicits.gcParser(None, gcString)
-        options = LinkerOptions(
+      val gc = NativeConfigParserImplicits.gcRead.reads(gcString)
+      val options = LinkerOptions(
+          dummyArguments.toList,
           dummyConfigOptions,
           NativeConfigOptions(gc = gc),
           dummyLoggerOptions,
           dummyMiscOptions
         )
-        converted <- ConfigConverter
-          .convert(options, dummyMain, dummyArguments)
+      val parsed = for {
+        converted <- ConfigConverter.convert(options, dummyMain, dummyArguments)
       } yield converted.config.gc
       assert(parsed.contains(expectedGC))
     }
@@ -84,14 +84,15 @@ class ConfigConverterTest extends AnyFlatSpec {
 
   it should "handle NativeConfig Mode correctly" in {
     def modeAssertion(modeString: String, expectedMode: Mode) = {
-      val parsed = for {
-        mode <- NativeConfigParserImplicits.modeParser(None, modeString)
-        options = LinkerOptions(
+      val mode = NativeConfigParserImplicits.modeRead.reads(modeString)
+      val options = LinkerOptions(
+          dummyArguments.toList,
           dummyConfigOptions,
           NativeConfigOptions(mode = mode),
           dummyLoggerOptions,
           dummyMiscOptions
         )
+      val parsed = for {
         converted <- ConfigConverter.convert(options, dummyMain, dummyArguments)
       } yield converted.config.compilerConfig.mode
       assert(parsed.contains(expectedMode))
@@ -103,14 +104,15 @@ class ConfigConverterTest extends AnyFlatSpec {
 
   it should "handle NativeConfig LTO correctly" in {
     def ltoAssertion(ltoString: String, expectedLto: LTO) = {
-      val parsed = for {
-        lto <- NativeConfigParserImplicits.ltoParser(None, ltoString)
-        options = LinkerOptions(
+      val lto = NativeConfigParserImplicits.ltoRead.reads(ltoString)
+      val options = LinkerOptions(
+          dummyArguments.toList,
           dummyConfigOptions,
           NativeConfigOptions(lto = lto),
           dummyLoggerOptions,
           dummyMiscOptions
         )
+      val parsed = for {
         opts <- ConfigConverter
           .convert(options, dummyMain, dummyArguments)
       } yield opts.config.compilerConfig.lto
@@ -130,6 +132,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     val expectedClangPPPath = Paths.get(clangPPString)
 
     val options = LinkerOptions(
+      dummyArguments.toList,
       dummyConfigOptions,
       NativeConfigOptions(
         clang = Some(clangString),
@@ -155,6 +158,7 @@ class ConfigConverterTest extends AnyFlatSpec {
 
   it should "parse boolean options as opposite of default" in {
     val options = LinkerOptions(
+      classpath = dummyArguments.toList,
       dummyConfigOptions,
       NativeConfigOptions(
         check = true,
