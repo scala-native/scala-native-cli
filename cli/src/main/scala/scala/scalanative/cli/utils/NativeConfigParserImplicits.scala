@@ -7,11 +7,11 @@ import scala.scalanative.build.Mode
 object NativeConfigParserImplicits {
 
   implicit val ltoRead: scopt.Read[LTO] =
-    scopt.Read.reads{
+    scopt.Read.reads {
       case "none" => LTO.none
       case "thin" => LTO.thin
       case "full" => LTO.full
-      case other => throw new IllegalArgumentException(other)
+      case other  => throw new IllegalArgumentException(other)
     }
 
   implicit val gcRead: scopt.Read[GC] =
@@ -20,7 +20,7 @@ object NativeConfigParserImplicits {
       case "commix" => GC.commix
       case "boehm"  => GC.boehm
       case "none"   => GC.none
-      case other => throw new IllegalArgumentException(other)
+      case other    => throw new IllegalArgumentException(other)
     }
 
   implicit val modeRead: scopt.Read[Mode] =
@@ -28,6 +28,6 @@ object NativeConfigParserImplicits {
       case "debug"        => Mode.debug
       case "release-fast" => Mode.releaseFast
       case "release-full" => Mode.releaseFull
-      case other => throw new IllegalArgumentException(other)
+      case other          => throw new IllegalArgumentException(other)
     }
 }

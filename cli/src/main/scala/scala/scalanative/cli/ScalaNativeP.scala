@@ -20,29 +20,16 @@ object ScalaNativeP {
 
     val parser = new scopt.OptionParser[PrinterOptions]("scala-native-p") {
       override def errorOnUnknownArgument = false
-      
+
       head("scala-native-p", BuildInfo.nativeVersion)
       arg[String]("Class names")
         .hidden()
         .optional()
         .unbounded()
         .action((x, c) => c.copy(classNames = c.classNames :+ x))
-      opt[String]("classpath")
-        .abbr("-cp")
-        .valueName("<path>")
-        .optional()
-        .unbounded()
-        .action((x, c) => 
-          if(c.usingDefaultClassPath)
-            c.copy(classpath = x :: Nil, usingDefaultClassPath = false)
-          else 
-            c.copy(classpath = c.classpath :+ x)
-        )
-        .text("Specify where to find user class files.")
-      opt[Unit]("from-path")
-        .optional()
-        .action((x, c) => c.copy(fromPath = true))
-        .text("Instead of passing class/object names, pass NIR file paths.")
+
+      PrinterOptions.set(this)
+
       help("help")
         .text("Print this usage text and exit.")
       version("version")
