@@ -28,12 +28,14 @@ object ScalaNativeP {
         .unbounded()
         .action((x, c) => c.copy(classNames = c.classNames :+ x))
 
-      PrinterOptions.set(this)
-
-      help("help")
+      note("Help options:")
+      help('h', "help")
         .text("Print this usage text and exit.")
       version("version")
         .text("Print scala-native-cli version and exit.")
+      
+      note("Other options:")
+      PrinterOptions.set(this)
     }
 
     parser.parse(args, PrinterOptions()) match {

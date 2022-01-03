@@ -11,7 +11,7 @@ import scala.scalanative.cli.options.NativeConfigOptions
 object ScalaNativeLd {
 
   def main(args: Array[String]): Unit = {
-    val parser = new scopt.OptionParser[LinkerOptions]("scala-native-p") {
+    val parser = new scopt.OptionParser[LinkerOptions]("scala-native-ld") {
       override def errorOnUnknownArgument = false
       head("scala-native-ld", BuildInfo.nativeVersion)
       arg[String]("classpath")
@@ -34,7 +34,7 @@ object ScalaNativeLd {
         )
 
       note("Help options:")
-      help("help")
+      help('h', "help")
         .text("Print this usage text and exit.")
       version("version")
         .text("Print scala-native-cli version and exit.")

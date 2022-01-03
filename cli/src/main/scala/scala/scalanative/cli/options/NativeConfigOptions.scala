@@ -133,7 +133,8 @@ object NativeConfigOptions {
         "Path to the `clang` executable. Internally discovered if not specified."
       )
     parser
-      .opt[String]("clang++")
+      .opt[String]("clang-pp")
+      .abbr("-clang++")
       .valueName("<path-to-clang++>")
       .optional()
       .action((x, c) =>
