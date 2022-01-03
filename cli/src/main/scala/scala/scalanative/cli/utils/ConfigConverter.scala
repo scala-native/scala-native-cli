@@ -52,24 +52,22 @@ object ConfigConverter {
       clangPP <- toPathOrDiscover(options.nativeConfig.clangPP)(
         Discover.clangpp()
       )
-      maybeNativeConfig <- VersionSpecificOptionsIncluder
-        .withVersionSpecificOptions(
-          options,
-          NativeConfig.empty
-            .withMode(options.nativeConfig.mode)
-            .withLTO(options.nativeConfig.lto)
-            .withGC(options.nativeConfig.gc)
-            .withLinkStubs(options.nativeConfig.linkStubs)
-            .withCheck(options.nativeConfig.check)
-            .withDump(options.nativeConfig.dump)
-            .withOptimize(!options.nativeConfig.noOptimize)
-            .withTargetTriple(options.nativeConfig.targetTriple)
-            .withClang(clang)
-            .withClangPP(clangPP)
-            .withCompileOptions(options.nativeConfig.compileOption)
-            .withLinkingOptions(options.nativeConfig.linkingOption)
-        )
-    } yield maybeNativeConfig
+      ltp <- LinktimePropertyParser.parseAll(options.nativeConfig.ltp)
+    } yield NativeConfig.empty
+      .withMode(options.nativeConfig.mode)
+      .withLTO(options.nativeConfig.lto)
+      .withGC(options.nativeConfig.gc)
+      .withLinkStubs(options.nativeConfig.linkStubs)
+      .withCheck(options.nativeConfig.check)
+      .withCheckFatalWarnings(options.nativeConfig.checkFatalWarnings)
+      .withDump(options.nativeConfig.dump)
+      .withOptimize(!options.nativeConfig.noOptimize)
+      .withTargetTriple(options.nativeConfig.targetTriple)
+      .withClang(clang)
+      .withClangPP(clangPP)
+      .withCompileOptions(options.nativeConfig.compileOption)
+      .withLinkingOptions(options.nativeConfig.linkingOption)
+      .withLinktimeProperties(ltp)
   }
 
   private def generateConfig(

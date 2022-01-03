@@ -20,7 +20,7 @@ val cliAssemblyJarName = settingKey[String]("Name of created assembly jar")
 inThisBuild(
   Def.settings(
     organization := "org.scala-native",
-    scalaNativeVersion := "0.4.2",
+    scalaNativeVersion := "0.4.3-SNAPSHOT",
     version := scalaNativeVersion.value,
     scalaVersion := crossScalaVersions212.last,
     crossScalaVersions := latestsScalaVersions,
@@ -38,7 +38,8 @@ inThisBuild(
         devConnection =
           Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
       )
-    )
+    ),
+    resolvers += Resolver.sonatypeRepo("snapshots")
   )
 )
 val cliPackLibJars =
@@ -50,13 +51,7 @@ lazy val cli = project
   .enablePlugins(BuildInfoPlugin)
   .settings(
     name := "scala-native-cli",
-    crossScalaVersions := {
-      scalaNativeVersion.value match {
-        // No Scala 2.13 artifacts until 0.4.2
-        case "0.4.0" | "0.4.1" => Seq(crossScalaVersions212.last)
-        case _                 => latestsScalaVersions
-      }
-    },
+    crossScalaVersions := latestsScalaVersions,
     Compile / run / mainClass :=
       Some("scala.scalanative.cli.ScalaNativeLd"),
     scalacOptions += "-Ywarn-unused:imports",
@@ -65,7 +60,6 @@ lazy val cli = project
       "com.github.alexarchambault" %% "case-app" % "2.1.0-M10",
       "org.scalatest" %% "scalatest" % "3.1.1" % Test
     ),
-    patchSourcesSettings,
     buildInfoKeys := Seq[BuildInfoKey](
       "nativeVersion" -> scalaNativeVersion.value
     ),
@@ -210,30 +204,6 @@ lazy val cliPackSettings = Def.settings(
     trg
   }
 )
-
-// To be removed since 0.4.2
-lazy val patchSourcesSettings = {
-  def patchSources(base: File, version: String, subdir: String) = {
-    val directory = version match {
-      case v @ "0.4.0" => v
-      case _           => "current"
-    }
-    base / "patches" / directory / "src" / subdir / "scala"
-  }
-
-  Def.settings(
-    Compile / unmanagedSourceDirectories += patchSources(
-      sourceDirectory.value,
-      scalaNativeVersion.value,
-      "main"
-    ),
-    Test / unmanagedSourceDirectories += patchSources(
-      sourceDirectory.value,
-      scalaNativeVersion.value,
-      "test"
-    )
-  )
-}
 
 lazy val publishSettings = Def.settings(
   Compile / publishArtifact := true,
