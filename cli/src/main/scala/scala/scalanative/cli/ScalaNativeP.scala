@@ -47,11 +47,6 @@ object ScalaNativeP {
   }
 
   private def runPrinter(options: PrinterOptions): Unit = {
-    if (options.misc.version) {
-      println(BuildInfo.nativeVersion)
-      sys.exit(0)
-    }
-
     if (options.classNames.isEmpty) {
       if (options.fromPath)
         System.err.println("Required NIR file not specified.")

@@ -84,7 +84,7 @@ object ConfigConverter {
         .withClassPath(classPath)
         .withMainClass(main + "$")
 
-      val verbosity = options.logger.verbose
+      val verbosity = options.verbose
       val logger = new FilteredLogger(verbosity)
       config.withLogger(logger)
     }

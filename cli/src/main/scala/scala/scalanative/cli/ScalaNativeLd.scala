@@ -28,9 +28,7 @@ object ScalaNativeLd {
         .abbr("v")
         .optional()
         .unbounded()
-        .action((x, c) =>
-          c.copy(logger = c.logger.copy(verbose = c.logger.verbose + 1))
-        )
+        .action((x, c) => c.copy(verbose = c.verbose + 1))
         .text(
           "Increase verbosity of internal logger. Can be specified multiple times."
         )
@@ -52,9 +50,7 @@ object ScalaNativeLd {
   }
 
   def runLd(options: LinkerOptions) = {
-    if (options.misc.version) {
-      println(BuildInfo.nativeVersion)
-    } else if (options.config.main.isEmpty) {
+    if (options.config.main.isEmpty) {
       println("Required option not specified: --main")
       sys.exit(1)
     } else {
