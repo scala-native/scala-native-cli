@@ -16,6 +16,21 @@ def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
     )
 }
 
+def scalaStdlibForBinaryVersion(v: String): Seq[String] = {
+  val commonLibs = Seq(
+    "nativelib",
+    "clib",
+    "posixlib",
+    "windowslib",
+    "javalib",
+    "auxlib"
+  )
+  v match {
+    case "2.12" | "2.13" => commonLibs :+ "scalalib"
+    case "3"             => commonLibs :+ "scala3lib"
+  }
+}
+
 val scalaNativeVersion =
   settingKey[String]("Version of Scala Native for which to build to CLI")
 
@@ -116,16 +131,10 @@ lazy val cliPackSettings = Def.settings(
     val scalaFullVers = scalaReleasesForBinaryVersion(scalaBinVer)
     val cliAssemblyJar = assembly.value
 
+    val scalaStdLibraryModuleIDs = scalaStdlibForBinaryVersion(scalaBinVer)
+
     // Standard modules needed for linking of Scala Native
-    val stdLibModuleIDs = Seq(
-      "nativelib",
-      "clib",
-      "posixlib",
-      "windowslib",
-      "javalib",
-      "auxlib",
-      "scalalib"
-    ).map { lib =>
+    val stdLibModuleIDs = scalaStdLibraryModuleIDs.map { lib =>
       val nativeBinVersion =
         ScalaNativeCrossVersion.binaryVersion(snVer.stripSuffix("-SNAPSHOT"))
       scalaNativeOrg % s"${lib}_native${nativeBinVersion}_${scalaBinVer}" % snVer
