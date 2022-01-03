@@ -82,7 +82,7 @@ object ConfigConverter {
         .withWorkdir(Paths.get(options.config.workdir).toAbsolutePath())
         .withCompilerConfig(nativeConfig)
         .withClassPath(classPath)
-        .withMainClass(main + "$")
+        .withMainClass(main)
 
       val verbosity = options.verbose
       val logger = new FilteredLogger(verbosity)

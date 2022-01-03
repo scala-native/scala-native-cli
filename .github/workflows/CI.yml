@@ -7,13 +7,13 @@ jobs:
       fail-fast: false
       matrix:
         OS: [ubuntu-18.04, windows-2019]
-        SN: [0.4.2]
+        scala: [2.12.15, 2.13.7, 3.1.0]
     steps:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v13
       - name: Test
         run: >
-         sbt 'set cli/scalaNativeVersion := "${{matrix.SN}}"'
+         sbt 'set cli/scalaVersion := "${{matrix.scala}}"'
          +cli/test
          +cliScriptedTests/scripted
         shell: bash

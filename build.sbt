@@ -126,7 +126,8 @@ lazy val cliPackSettings = Def.settings(
       "auxlib",
       "scalalib"
     ).map { lib =>
-      val nativeBinVersion = ScalaNativeCrossVersion.binaryVersion(snVer)
+      val nativeBinVersion =
+        ScalaNativeCrossVersion.binaryVersion(snVer.stripSuffix("-SNAPSHOT"))
       scalaNativeOrg % s"${lib}_native${nativeBinVersion}_${scalaBinVer}" % snVer
     }
     val compilerPluginModuleIDs =
@@ -138,7 +139,9 @@ lazy val cliPackSettings = Def.settings(
       val retrieveDir = s.cacheDirectory / "cli-lib-jars"
       val lm = {
         import sbt.librarymanagement.ivy._
-        val ivyConfig = InlineIvyConfiguration().withLog(log)
+        val ivyConfig = InlineIvyConfiguration()
+          .withResolvers(resolvers.value.toVector)
+          .withLog(log)
         IvyDependencyResolution(ivyConfig)
       }
       val dummyModuleName =
@@ -194,7 +197,7 @@ lazy val cliPackSettings = Def.settings(
         .replaceAllLiterally("@SCALANATIVE_VER@", snVer)
         .replaceAllLiterally(
           "@SCALANATIVE_BIN_VER@",
-          ScalaNativeCrossVersion.binaryVersion(snVer)
+          ScalaNativeCrossVersion.binaryVersion(snVer.stripSuffix("-SNAPSHOT"))
         )
       val dest = trgBin / scriptFile.getName
       IO.write(dest, processedContent)

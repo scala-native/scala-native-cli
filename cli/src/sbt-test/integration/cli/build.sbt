@@ -1,3 +1,4 @@
+resolvers += Resolver.sonatypeRepo("snapshots")
 enablePlugins(ScalaNativePlugin)
 
 import sbt._
