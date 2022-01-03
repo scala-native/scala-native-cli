@@ -113,19 +113,17 @@ lazy val cliPackSettings = Def.settings(
     val cliAssemblyJar = assembly.value
 
     // Standard modules needed for linking of Scala Native
-    val optLib = snVer match {
-      case "0.4.0" => Nil
-      case v       => "windowslib" :: Nil
-    }
     val stdLibModuleIDs = Seq(
       "nativelib",
       "clib",
       "posixlib",
+      "windowslib",
       "javalib",
       "auxlib",
       "scalalib"
-    ).++(optLib).map { lib =>
-      val nativeBinVersion = ScalaNativeCrossVersion.binaryVersion(snVer)
+    ).map { lib =>
+      val nativeBinVersion =
+        ScalaNativeCrossVersion.binaryVersion(snVer.stripSuffix("-SNAPSHOT"))
       scalaNativeOrg % s"${lib}_native${nativeBinVersion}_${scalaBinVer}" % snVer
     }
     val compilerPluginModuleIDs =
