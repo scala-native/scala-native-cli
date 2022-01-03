@@ -59,8 +59,8 @@ lazy val cli = project
     scalacOptions += "-Ywarn-unused:imports",
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
-      "com.github.alexarchambault" %% "case-app" % "2.1.0-M10" cross(CrossVersion.for3Use2_13),
-      "org.scalatest" %% "scalatest" % "3.1.1" % Test cross(CrossVersion.for3Use2_13)
+      "com.github.alexarchambault" %% "case-app" % "2.1.0-M10" cross (CrossVersion.for3Use2_13),
+      "org.scalatest" %% "scalatest" % "3.1.1" % Test cross (CrossVersion.for3Use2_13)
     ),
     buildInfoKeys := Seq[BuildInfoKey](
       "nativeVersion" -> scalaNativeVersion.value
