@@ -33,7 +33,7 @@ object ScalaNativeP {
         .text("Print this usage text and exit.")
       version("version")
         .text("Print scala-native-cli version and exit.")
-      
+
       note("Other options:")
       PrinterOptions.set(this)
     }
