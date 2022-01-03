@@ -151,7 +151,8 @@ class ConfigConverterTest extends AnyFlatSpec {
         check = true,
         dump = true,
         noOptimize = true,
-        linkStubs = true
+        linkStubs = true,
+        checkFatalWarnings = true
       )
     )
     val parsed = for {
@@ -170,6 +171,7 @@ class ConfigConverterTest extends AnyFlatSpec {
         assert(nonDefault.dump != default.dump)
         assert(nonDefault.optimize != default.optimize)
         assert(nonDefault.linkStubs != default.linkStubs)
+        assert(nonDefault.checkFatalWarnings != default.checkFatalWarnings)
       }
     )
   }
