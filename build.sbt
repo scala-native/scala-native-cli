@@ -122,8 +122,7 @@ lazy val cliPackSettings = Def.settings(
       "auxlib",
       "scalalib"
     ).map { lib =>
-      val nativeBinVersion =
-        ScalaNativeCrossVersion.binaryVersion(snVer.stripSuffix("-SNAPSHOT"))
+      val nativeBinVersion = ScalaNativeCrossVersion.binaryVersion(snVer)
       scalaNativeOrg % s"${lib}_native${nativeBinVersion}_${scalaBinVer}" % snVer
     }
     val compilerPluginModuleIDs =
