@@ -1,11 +1,15 @@
 val crossScalaVersions212 = (13 to 15).map(v => s"2.12.$v")
 val crossScalaVersions213 = (4 to 7).map(v => s"2.13.$v")
+val crossScalaVersions3 = Seq("3.1.0")
 val latestsScalaVersions =
-  Seq(crossScalaVersions212.last, crossScalaVersions213.last)
+  Seq(crossScalaVersions212, crossScalaVersions213, crossScalaVersions3).map(
+    _.last
+  )
 
 def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
   case "2.12" => crossScalaVersions212
   case "2.13" => crossScalaVersions213
+  case "3"    => crossScalaVersions3
   case ver =>
     throw new IllegalArgumentException(
       s"Unsupported binary scala version `${ver}`"
@@ -58,7 +62,7 @@ lazy val cli = project
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
       "com.github.scopt" %% "scopt" % "4.0.1",
-      "org.scalatest" %% "scalatest" % "3.1.1" % Test
+      "org.scalatest" %% "scalatest" % "3.2.10"
     ),
     buildInfoKeys := Seq[BuildInfoKey](
       "nativeVersion" -> scalaNativeVersion.value
