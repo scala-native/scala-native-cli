@@ -1,7 +1,8 @@
 val crossScalaVersions212 = (13 to 15).map(v => s"2.12.$v")
 val crossScalaVersions213 = (4 to 7).map(v => s"2.13.$v")
 val crossScalaVersions3 = Seq("3.1.0")
-val latestsScalaVersions = Seq(crossScalaVersions212, crossScalaVersions213, crossScalaVersions3)
+val latestsScalaVersions =
+  Seq(crossScalaVersions212, crossScalaVersions213, crossScalaVersions3)
     .map(_.last)
 
 def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
@@ -40,8 +41,7 @@ inThisBuild(
         devConnection =
           Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
       )
-    ),
-    resolvers += Resolver.sonatypeRepo("snapshots")
+    )
   )
 )
 val cliPackLibJars =
@@ -128,14 +128,16 @@ lazy val cliPackSettings = Def.settings(
       scalaNativeOrg % s"${lib}_native${nativeBinVersion}_${scalaBinVer}" % snVer
     }
     val scala3ModulesIDs = scalaBinVer match {
-      case "3" => Seq("scala3lib").map{lib =>
-        scalaNativeOrg % s"${lib}_native${nativeBinVersion}_${scalaBinVer}" % snVer
-      }
+      case "3" =>
+        Seq("scala3lib").map { lib =>
+          scalaNativeOrg % s"${lib}_native${nativeBinVersion}_${scalaBinVer}" % snVer
+        }
       case _ => Nil
     }
     val compilerPluginModuleIDs =
       scalaFullVers.map(v => scalaNativeOrg % s"nscplugin_$v" % snVer)
-    val allModuleIDs = (stdLibModuleIDs ++ scala3ModulesIDs ++ compilerPluginModuleIDs).toVector
+    val allModuleIDs =
+      (stdLibModuleIDs ++ scala3ModulesIDs ++ compilerPluginModuleIDs).toVector
     val allModuleIDsIntransitive = allModuleIDs.map(_.intransitive())
 
     val resolvedLibJars = {
