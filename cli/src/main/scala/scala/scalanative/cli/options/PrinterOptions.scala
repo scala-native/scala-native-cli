@@ -1,19 +1,33 @@
 package scala.scalanative.cli.options
 
-import caseapp._
+import scopt.OptionParser
 
-@AppName("ScalaNativeP")
-@ProgName("scala-native-p")
-@ArgsName("Class names")
 case class PrinterOptions(
-    @HelpMessage("Specify where to find user class files")
-    @ExtraName("cp")
-    @ValueDescription("<path>")
+    classNames: List[String] = Nil,
     classpath: List[String] = "." :: Nil,
-    @HelpMessage(
-      "Instead of passing class/object names, pass NIR file paths."
-    )
-    fromPath: Boolean = false,
-    @Recurse
-    misc: MiscOptions
+    usingDefaultClassPath: Boolean = true,
+    fromPath: Boolean = false
 )
+
+object PrinterOptions {
+  def set(parser: OptionParser[PrinterOptions]) = {
+    parser
+      .opt[String]("classpath")
+      .abbr("-cp")
+      .valueName("<path>")
+      .optional()
+      .unbounded()
+      .action((x, c) =>
+        if (c.usingDefaultClassPath)
+          c.copy(classpath = x :: Nil, usingDefaultClassPath = false)
+        else
+          c.copy(classpath = c.classpath :+ x)
+      )
+      .text("Specify where to find user class files.")
+    parser
+      .opt[Unit]("from-path")
+      .optional()
+      .action((x, c) => c.copy(fromPath = true))
+      .text("Instead of passing class/object names, pass NIR file paths.")
+  }
+}

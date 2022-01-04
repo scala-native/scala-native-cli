@@ -7,7 +7,6 @@ import java.nio.file.Paths
 import java.nio.file.Path
 import scala.util.Try
 import scala.scalanative.cli.options.LinkerOptions
-import caseapp.Tag
 
 case class BuildOptions(
     config: Config,
@@ -83,9 +82,9 @@ object ConfigConverter {
         .withWorkdir(Paths.get(options.config.workdir).toAbsolutePath())
         .withCompilerConfig(nativeConfig)
         .withClassPath(classPath)
-        .withMainClass(main + "$")
+        .withMainClass(main)
 
-      val verbosity = Tag.unwrap(options.logger.verbose)
+      val verbosity = options.verbose
       val logger = new FilteredLogger(verbosity)
       config.withLogger(logger)
     }

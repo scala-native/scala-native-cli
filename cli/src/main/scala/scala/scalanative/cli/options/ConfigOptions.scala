@@ -1,21 +1,33 @@
 package scala.scalanative.cli.options
 
-import caseapp._
+import scopt.OptionParser
 
 case class ConfigOptions(
-    @Group("Config")
-    @HelpMessage("Required main class.")
-    @ValueDescription("<main>")
     main: Option[String] = None,
-    @Group("Config")
-    @ExtraName("o")
-    @HelpMessage(
-      "Path of the resulting output binary. [./scala-native-out]"
-    )
-    @ValueDescription("<output-path>")
     outpath: String = "scala-native-out",
-    @Group("Config")
-    @HelpMessage("Scala Native working directory. [.]")
-    @ValueDescription("<path-to-directory>")
     workdir: String = "."
 )
+
+object ConfigOptions {
+  def set(parser: OptionParser[LinkerOptions]) = {
+    parser.note("Config options:")
+    parser
+      .opt[String]("main")
+      .valueName("<main>")
+      .optional()
+      .action((x, c) => c.copy(config = c.config.copy(main = Some(x))))
+      .text("Required main class.")
+    parser
+      .opt[String]('o', "outpath")
+      .valueName("<output-path>")
+      .optional()
+      .action((x, c) => c.copy(config = c.config.copy(outpath = x)))
+      .text("Path of the resulting output binary. [./scala-native-out]")
+    parser
+      .opt[String]("workdir")
+      .valueName("<path-to-directory>")
+      .optional()
+      .action((x, c) => c.copy(config = c.config.copy(workdir = x)))
+      .text("Scala Native working directory. [.]")
+  }
+}

@@ -1,17 +1,8 @@
 package scala.scalanative.cli.options
 
-import caseapp._
-
-@AppName("ScalaNativeLd")
-@ProgName("scala-native-ld")
-@ArgsName("classpath")
 case class LinkerOptions(
-    @Recurse
-    config: ConfigOptions,
-    @Recurse
-    nativeConfig: NativeConfigOptions,
-    @Recurse
-    logger: LoggerOptions,
-    @Recurse
-    misc: MiscOptions
+    classpath: List[String] = Nil,
+    config: ConfigOptions = ConfigOptions(),
+    nativeConfig: NativeConfigOptions = NativeConfigOptions(),
+    verbose: Int = 0
 )

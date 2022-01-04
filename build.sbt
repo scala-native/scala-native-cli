@@ -1,15 +1,48 @@
 val crossScalaVersions212 = (13 to 15).map(v => s"2.12.$v")
 val crossScalaVersions213 = (4 to 7).map(v => s"2.13.$v")
+val crossScalaVersions3 = Seq("3.1.0")
 val latestsScalaVersions =
-  Seq(crossScalaVersions212.last, crossScalaVersions213.last)
+  Seq(crossScalaVersions212, crossScalaVersions213, crossScalaVersions3).map(
+    _.last
+  )
 
 def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
   case "2.12" => crossScalaVersions212
   case "2.13" => crossScalaVersions213
+  case "3"    => crossScalaVersions3
   case ver =>
     throw new IllegalArgumentException(
       s"Unsupported binary scala version `${ver}`"
     )
+}
+
+def scalaStdlibForBinaryVersion(
+    nativeBinVer: String,
+    scalaBinVer: String
+): Seq[String] = {
+  def depPattern(lib: String, v: String) =
+    s"${lib}_native${nativeBinVer}_${v}"
+  val scalalib = "scalalib"
+  val scala3lib = "scala3lib"
+  val commonLibs = Seq(
+    "nativelib",
+    "clib",
+    "posixlib",
+    "windowslib",
+    "javalib",
+    "auxlib"
+  )
+  scalaBinVer match {
+    case "2.12" | "2.13" =>
+      (commonLibs :+ scalalib).map(depPattern(_, scalaBinVer))
+    case "3" =>
+      (commonLibs :+ scala3lib).map(depPattern(_, scalaBinVer)) :+
+        depPattern(scalalib, "2.13")
+    case ver =>
+      throw new IllegalArgumentException(
+        s"Unsupported binary scala version `${ver}`"
+      )
+  }
 }
 
 val scalaNativeVersion =
@@ -57,8 +90,8 @@ lazy val cli = project
     scalacOptions += "-Ywarn-unused:imports",
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
-      "com.github.alexarchambault" %% "case-app" % "2.1.0-M10",
-      "org.scalatest" %% "scalatest" % "3.1.1" % Test
+      "com.github.scopt" %% "scopt" % "4.0.1",
+      "org.scalatest" %% "scalatest" % "3.2.10" % Test
     ),
     buildInfoKeys := Seq[BuildInfoKey](
       "nativeVersion" -> scalaNativeVersion.value
@@ -108,23 +141,19 @@ lazy val cliPackSettings = Def.settings(
     val scalaNativeOrg = organization.value
     val scalaBinVer = scalaBinaryVersion.value
     val snVer = scalaNativeVersion.value
+    val nativeBinVer =
+      ScalaNativeCrossVersion.binaryVersion(snVer.stripSuffix("-SNAPSHOT"))
 
     val scalaFullVers = scalaReleasesForBinaryVersion(scalaBinVer)
     val cliAssemblyJar = assembly.value
 
+    val scalaStdLibraryModuleIDs =
+      scalaStdlibForBinaryVersion(nativeBinVer, scalaBinVer)
+
     // Standard modules needed for linking of Scala Native
-    val stdLibModuleIDs = Seq(
-      "nativelib",
-      "clib",
-      "posixlib",
-      "windowslib",
-      "javalib",
-      "auxlib",
-      "scalalib"
-    ).map { lib =>
-      val nativeBinVersion = ScalaNativeCrossVersion.binaryVersion(snVer)
-      scalaNativeOrg % s"${lib}_native${nativeBinVersion}_${scalaBinVer}" % snVer
-    }
+    val stdLibModuleIDs = scalaStdLibraryModuleIDs.map(
+      scalaNativeOrg % _ % snVer
+    )
     val compilerPluginModuleIDs =
       scalaFullVers.map(v => scalaNativeOrg % s"nscplugin_$v" % snVer)
     val allModuleIDs = (stdLibModuleIDs ++ compilerPluginModuleIDs).toVector
@@ -134,7 +163,9 @@ lazy val cliPackSettings = Def.settings(
       val retrieveDir = s.cacheDirectory / "cli-lib-jars"
       val lm = {
         import sbt.librarymanagement.ivy._
-        val ivyConfig = InlineIvyConfiguration().withLog(log)
+        val ivyConfig = InlineIvyConfiguration()
+          .withResolvers(resolvers.value.toVector)
+          .withLog(log)
         IvyDependencyResolution(ivyConfig)
       }
       val dummyModuleName =
@@ -190,7 +221,7 @@ lazy val cliPackSettings = Def.settings(
         .replaceAllLiterally("@SCALANATIVE_VER@", snVer)
         .replaceAllLiterally(
           "@SCALANATIVE_BIN_VER@",
-          ScalaNativeCrossVersion.binaryVersion(snVer)
+          ScalaNativeCrossVersion.binaryVersion(snVer.stripSuffix("-SNAPSHOT"))
         )
       val dest = trgBin / scriptFile.getName
       IO.write(dest, processedContent)

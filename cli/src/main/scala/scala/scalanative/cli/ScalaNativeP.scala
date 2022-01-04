@@ -1,7 +1,5 @@
 package scala.scalanative.cli
 
-import caseapp.core.app.CaseApp
-import caseapp.core.RemainingArgs
 import java.nio.file.Paths
 import java.io.File
 import scala.scalanative.util.Scope
@@ -16,20 +14,47 @@ import scala.scalanative.nir.Defn
 import scala.annotation.tailrec
 import java.nio.ByteBuffer
 
-object ScalaNativeP extends CaseApp[PrinterOptions] {
+object ScalaNativeP {
 
-  def run(options: PrinterOptions, args: RemainingArgs): Unit = {
-    if (options.misc.version) {
-      println(BuildInfo.nativeVersion)
-      exit(0)
+  def main(args: Array[String]): Unit = {
+
+    val parser = new scopt.OptionParser[PrinterOptions]("scala-native-p") {
+      override def errorOnUnknownArgument = false
+
+      head("scala-native-p", BuildInfo.nativeVersion)
+      arg[String]("Class names")
+        .hidden()
+        .optional()
+        .unbounded()
+        .action((x, c) => c.copy(classNames = c.classNames :+ x))
+
+      note("Help options:")
+      help('h', "help")
+        .text("Print this usage text and exit.")
+      version("version")
+        .text("Print scala-native-cli version and exit.")
+
+      note("Other options:")
+      PrinterOptions.set(this)
     }
 
-    if (args.all.isEmpty) {
+    parser.parse(args, PrinterOptions()) match {
+      case Some(config) =>
+        runPrinter(config)
+        sys.exit(0)
+      case _ =>
+        // arguments are of bad format, scopt will have displayed errors automatically
+        sys.exit(1)
+    }
+  }
+
+  private def runPrinter(options: PrinterOptions): Unit = {
+    if (options.classNames.isEmpty) {
       if (options.fromPath)
         System.err.println("Required NIR file not specified.")
       else
         System.err.println("Required class/object not specified.")
-      exit(1)
+      sys.exit(1)
     }
 
     val (classpath, ignoredPaths) =
@@ -41,8 +66,8 @@ object ScalaNativeP extends CaseApp[PrinterOptions] {
       System.err.println(s"Ignoring non existing path: $path")
     }
 
-    if (options.fromPath) printFromFiles(classpath, args.all)
-    else printFromNames(classpath, args.all)
+    if (options.fromPath) printFromFiles(classpath, options.classNames)
+    else printFromNames(classpath, options.classNames)
   }
 
   private def printFromNames(
@@ -118,7 +143,7 @@ object ScalaNativeP extends CaseApp[PrinterOptions] {
 
   private def fail(msg: String): Nothing = {
     Console.err.println(msg)
-    exit(1)
+    sys.exit(1)
   }
 
 }

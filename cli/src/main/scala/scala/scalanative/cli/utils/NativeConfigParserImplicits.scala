@@ -4,42 +4,30 @@ import scala.scalanative.build.LTO
 import scala.scalanative.build.GC
 import scala.scalanative.build.Mode
 
-import caseapp.core.argparser.SimpleArgParser
-import caseapp.core.argparser.ArgParser
-
 object NativeConfigParserImplicits {
 
-  implicit val ltoParser: ArgParser[LTO] =
-    SimpleArgParser.from[LTO]("lto") {
-      case "none" => Right(LTO.none)
-      case "thin" => Right(LTO.thin)
-      case "full" => Right(LTO.full)
-      case other =>
-        Left(
-          caseapp.core.Error.UnrecognizedArgument(other)
-        )
+  implicit val ltoRead: scopt.Read[LTO] =
+    scopt.Read.reads {
+      case "none" => LTO.none
+      case "thin" => LTO.thin
+      case "full" => LTO.full
+      case other  => throw new IllegalArgumentException(other)
     }
 
-  implicit val gcParser: ArgParser[GC] =
-    SimpleArgParser.from[GC]("gc") {
-      case "immix"  => Right(GC.immix)
-      case "commix" => Right(GC.commix)
-      case "boehm"  => Right(GC.boehm)
-      case "none"   => Right(GC.none)
-      case other =>
-        Left(
-          caseapp.core.Error.UnrecognizedArgument(other)
-        )
+  implicit val gcRead: scopt.Read[GC] =
+    scopt.Read.reads {
+      case "immix"  => GC.immix
+      case "commix" => GC.commix
+      case "boehm"  => GC.boehm
+      case "none"   => GC.none
+      case other    => throw new IllegalArgumentException(other)
     }
 
-  implicit val modeParser: ArgParser[Mode] =
-    SimpleArgParser.from[Mode]("mode") {
-      case "debug"        => Right(Mode.debug)
-      case "release-fast" => Right(Mode.releaseFast)
-      case "release-full" => Right(Mode.releaseFull)
-      case other =>
-        Left(
-          caseapp.core.Error.UnrecognizedArgument(other)
-        )
+  implicit val modeRead: scopt.Read[Mode] =
+    scopt.Read.reads {
+      case "debug"        => Mode.debug
+      case "release-fast" => Mode.releaseFast
+      case "release-full" => Mode.releaseFull
+      case other          => throw new IllegalArgumentException(other)
     }
 }

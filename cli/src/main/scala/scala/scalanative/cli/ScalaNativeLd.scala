@@ -3,24 +3,59 @@ package scala.scalanative.cli
 import scala.scalanative.build.Build
 import scala.scalanative.util.Scope
 import scala.scalanative.cli.utils.ConfigConverter
-import scala.scalanative.cli.utils.NativeConfigParserImplicits._
 import scala.scalanative.cli.options.LinkerOptions
-import caseapp.core.app.CaseApp
-import caseapp.core.RemainingArgs
 import scala.scalanative.cli.options.BuildInfo
+import scala.scalanative.cli.options.ConfigOptions
+import scala.scalanative.cli.options.NativeConfigOptions
 
-object ScalaNativeLd extends CaseApp[LinkerOptions] {
+object ScalaNativeLd {
 
-  override def ignoreUnrecognized: Boolean = true
+  def main(args: Array[String]): Unit = {
+    val parser = new scopt.OptionParser[LinkerOptions]("scala-native-ld") {
+      override def errorOnUnknownArgument = false
+      head("scala-native-ld", BuildInfo.nativeVersion)
+      arg[String]("classpath")
+        .hidden()
+        .optional()
+        .unbounded()
+        .action((x, c) => c.copy(classpath = c.classpath :+ x))
 
-  def run(options: LinkerOptions, args: RemainingArgs) = {
-    if (options.misc.version) {
-      println(BuildInfo.nativeVersion)
-    } else if (options.config.main.isEmpty) {
+      ConfigOptions.set(this)
+      NativeConfigOptions.set(this)
+
+      note("Logger options:")
+      opt[Unit]("verbose")
+        .abbr("v")
+        .optional()
+        .unbounded()
+        .action((x, c) => c.copy(verbose = c.verbose + 1))
+        .text(
+          "Increase verbosity of internal logger. Can be specified multiple times."
+        )
+
+      note("Help options:")
+      help('h', "help")
+        .text("Print this usage text and exit.")
+      version("version")
+        .text("Print scala-native-cli version and exit.")
+    }
+    parser.parse(args, LinkerOptions()) match {
+      case Some(config) =>
+        runLd(config)
+        sys.exit(0)
+      case _ =>
+        // arguments are of bad format, scopt will have displayed errors automatically
+        sys.exit(1)
+    }
+  }
+
+  def runLd(options: LinkerOptions) = {
+    if (options.config.main.isEmpty) {
       println("Required option not specified: --main")
-      exit(1)
+      sys.exit(1)
     } else {
-      val (ignoredArgs, classpath) = args.all.partition(_.startsWith("-"))
+      val (ignoredArgs, classpath) =
+        options.classpath.partition(_.startsWith("-"))
       ignoredArgs.foreach { arg =>
         println(s"Unrecognised argument: ${arg}")
       }
@@ -30,7 +65,7 @@ object ScalaNativeLd extends CaseApp[LinkerOptions] {
       buildOptionsMaybe match {
         case Left(thrown) =>
           System.err.println(thrown.getMessage())
-          exit(1)
+          sys.exit(1)
         case Right(buildOptions) =>
           Scope { implicit scope =>
             Build.build(buildOptions.config, buildOptions.outpath)
