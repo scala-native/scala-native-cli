@@ -16,7 +16,14 @@ def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
     )
 }
 
-def scalaStdlibForBinaryVersion(v: String): Seq[String] = {
+def scalaStdlibForBinaryVersion(
+    nativeBinVer: String,
+    scalaBinVer: String
+): Seq[String] = {
+  def depPattern(lib: String, v: String) =
+    s"${lib}_native${nativeBinVer}_${v}"
+  val scalalib = "scalalib"
+  val scala3lib = "scala3lib"
   val commonLibs = Seq(
     "nativelib",
     "clib",
@@ -25,9 +32,16 @@ def scalaStdlibForBinaryVersion(v: String): Seq[String] = {
     "javalib",
     "auxlib"
   )
-  v match {
-    case "2.12" | "2.13" => commonLibs :+ "scalalib"
-    case "3"             => commonLibs :+ "scala3lib"
+  scalaBinVer match {
+    case "2.12" | "2.13" =>
+      (commonLibs :+ scalalib).map(depPattern(_, scalaBinVer))
+    case "3" =>
+      (commonLibs :+ scala3lib).map(depPattern(_, scalaBinVer)) :+
+        depPattern(scalalib, "2.13")
+    case ver =>
+      throw new IllegalArgumentException(
+        s"Unsupported binary scala version `${ver}`"
+      )
   }
 }
 
@@ -127,18 +141,19 @@ lazy val cliPackSettings = Def.settings(
     val scalaNativeOrg = organization.value
     val scalaBinVer = scalaBinaryVersion.value
     val snVer = scalaNativeVersion.value
+    val nativeBinVer =
+      ScalaNativeCrossVersion.binaryVersion(snVer.stripSuffix("-SNAPSHOT"))
 
     val scalaFullVers = scalaReleasesForBinaryVersion(scalaBinVer)
     val cliAssemblyJar = assembly.value
 
-    val scalaStdLibraryModuleIDs = scalaStdlibForBinaryVersion(scalaBinVer)
+    val scalaStdLibraryModuleIDs =
+      scalaStdlibForBinaryVersion(nativeBinVer, scalaBinVer)
 
     // Standard modules needed for linking of Scala Native
-    val stdLibModuleIDs = scalaStdLibraryModuleIDs.map { lib =>
-      val nativeBinVersion =
-        ScalaNativeCrossVersion.binaryVersion(snVer.stripSuffix("-SNAPSHOT"))
-      scalaNativeOrg % s"${lib}_native${nativeBinVersion}_${scalaBinVer}" % snVer
-    }
+    val stdLibModuleIDs = scalaStdLibraryModuleIDs.map(
+      scalaNativeOrg % _ % snVer
+    )
     val compilerPluginModuleIDs =
       scalaFullVers.map(v => scalaNativeOrg % s"nscplugin_$v" % snVer)
     val allModuleIDs = (stdLibModuleIDs ++ compilerPluginModuleIDs).toVector
