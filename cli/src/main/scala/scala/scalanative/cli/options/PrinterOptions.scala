@@ -34,7 +34,6 @@ object PrinterOptions {
       .opt[Unit]("verbose")
       .abbr("-v")
       .optional()
-      .unbounded()
       .action((_, c) => c.copy(verbose = true))
       .text("Print all informations about NIR, including method definitions.")
 
