@@ -53,7 +53,7 @@ val cliAssemblyJarName = settingKey[String]("Name of created assembly jar")
 inThisBuild(
   Def.settings(
     organization := "org.scala-native",
-    scalaNativeVersion := "0.4.3-RC2",
+    scalaNativeVersion := "0.4.3-SNAPSHOT",
     version := scalaNativeVersion.value,
     scalaVersion := crossScalaVersions212.last,
     crossScalaVersions := latestsScalaVersions,
