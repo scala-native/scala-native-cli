@@ -12,6 +12,12 @@ $ exists Foo$.nir
 > runScript scala-native-p --from-path Foo.nir
 -> runScript scala-native-p --from-path notExisting.nir
 
+# Move nir file to directory outside classpath 
+$ mkdir ../scala-native-test/
+$ copy-file Foo.nir ../scala-native-test//Foo2.nir
+$ exists  ../scala-native-test/Foo2.nir
+> runScript scala-native-p --from-path ../scala-native-test/Foo2.nir
+
 > runExec jar cf inside.jar Foo.class Foo.nir Foo$.class Foo$.nir
 > runScript scala-native-p --cp inside.jar --from-path Foo.nir Foo$.nir
 -> runScript scala-native-p --cp inside.jar --from-path Main$.nir
