@@ -72,7 +72,8 @@ inThisBuild(
           Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
       )
     ),
-    resolvers += Resolver.sonatypeRepo("snapshots")
+    resolvers += Resolver.sonatypeRepo("snapshots"),
+    resolvers += Resolver.mavenCentral
   )
 )
 val cliPackLibJars =
