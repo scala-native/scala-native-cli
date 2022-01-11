@@ -10,6 +10,9 @@ $ exists Foo$.nir
 -> runScript scala-native-p not.existing.Class
 
 > runScript scala-native-p --from-path Foo.nir
+> runScript scala-native-p --from-path -v Foo.nir
+> runScript scala-native-p --from-path --verbose Foo.nir
+
 -> runScript scala-native-p --from-path notExisting.nir
 
 > runExec jar cf inside.jar Foo.class Foo.nir Foo$.class Foo$.nir

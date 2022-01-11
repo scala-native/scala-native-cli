@@ -6,7 +6,8 @@ case class PrinterOptions(
     classNames: List[String] = Nil,
     classpath: List[String] = "." :: Nil,
     usingDefaultClassPath: Boolean = true,
-    fromPath: Boolean = false
+    fromPath: Boolean = false,
+    verbose: Boolean = false
 )
 
 object PrinterOptions {
@@ -29,5 +30,13 @@ object PrinterOptions {
       .optional()
       .action((x, c) => c.copy(fromPath = true))
       .text("Instead of passing class/object names, pass NIR file paths.")
+    parser
+      .opt[Unit]("verbose")
+      .abbr("-v")
+      .optional()
+      .unbounded()
+      .action((_, c) => c.copy(verbose = true))
+      .text("Print all informations about NIR, including method definitions.")
+
   }
 }
