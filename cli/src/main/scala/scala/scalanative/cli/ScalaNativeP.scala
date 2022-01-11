@@ -106,7 +106,7 @@ object ScalaNativeP {
         relativeInJar == regularPath.toString()
       }
       @tailrec
-      def findAndRead(
+      def findInClasspathAndRead(
           classpath: Stream[VirtualDirectory],
           path: Path
       ): Option[ByteBuffer] = {
@@ -116,15 +116,31 @@ object ScalaNativeP {
             val found = dir.files
               .find(virtualDirPathMatches(_, path))
               .map(dir.read(_))
-            if (found.isEmpty) findAndRead(tail, path)
+            if (found.isEmpty) findInClasspathAndRead(tail, path)
             else found
         }
       }
+
+      def tryReadFromPath(path: Path): Option[ByteBuffer] = {
+        val file = path.toFile()
+        val absPath = path.toAbsolutePath()
+        // When classpath is explicitly provided don't try to read directly
+        if (!options.usingDefaultClassPath || !file.exists()) None
+        else
+          util.Try {
+            VirtualDirectory
+              .real(absPath.getParent())
+              .read(absPath.getFileName())
+          }.toOption
+      }
+
       for {
         fileName <- options.classNames
         path = Paths.get(fileName).normalize()
-        content <- findAndRead(cp, path)
-          .orElse(fail(s"Not found file with name `${fileName}`"))
+        content <-
+          tryReadFromPath(path)
+            .orElse(findInClasspathAndRead(cp, path))
+            .orElse(fail(s"Not found file with name `${fileName}`"))
       } {
         val defns = deserializeBinary(content, fileName)
         printNIR(defns, options.verbose)
