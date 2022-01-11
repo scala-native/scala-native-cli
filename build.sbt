@@ -134,6 +134,11 @@ lazy val cliScriptedTests = project
     }
   )
 
+def nativeBinaryVersion(version: String): String = {
+  val VersionPattern = raw"(\d+)\.(\d+)\.(\d+)(\-.*)?".r
+  val VersionPattern(major, minor, _, _) = version
+  s"$major.$minor"
+}
 lazy val cliPackSettings = Def.settings(
   cliPackLibJars := {
     val s = streams.value
@@ -142,8 +147,7 @@ lazy val cliPackSettings = Def.settings(
     val scalaNativeOrg = organization.value
     val scalaBinVer = scalaBinaryVersion.value
     val snVer = scalaNativeVersion.value
-    val nativeBinVer =
-      ScalaNativeCrossVersion.binaryVersion(snVer.stripSuffix("-SNAPSHOT"))
+    val nativeBinVer = nativeBinaryVersion(snVer)
 
     val scalaFullVers = scalaReleasesForBinaryVersion(scalaBinVer)
     val cliAssemblyJar = assembly.value
@@ -222,7 +226,7 @@ lazy val cliPackSettings = Def.settings(
         .replaceAllLiterally("@SCALANATIVE_VER@", snVer)
         .replaceAllLiterally(
           "@SCALANATIVE_BIN_VER@",
-          ScalaNativeCrossVersion.binaryVersion(snVer.stripSuffix("-SNAPSHOT"))
+          nativeBinaryVersion(snVer)
         )
       val dest = trgBin / scriptFile.getName
       IO.write(dest, processedContent)
