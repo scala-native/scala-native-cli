@@ -34,7 +34,10 @@ runScript := {
   val ver = scalaVersion.value
   val cacheDir =
     new File(cliPackDir).getParentFile.getParentFile / s"fetchScala-$ver"
-  val scalaBinDir = cacheDir / s"scala-$ver" / "bin"
+  val scalaDir =
+    if (ver.startsWith("3.")) s"scala3-$ver"
+    else s"scala-$ver"
+  val scalaBinDir = cacheDir / scalaDir / "bin"
 
   FileFunction.cached(
     cacheDir / s"fetchScala-$ver",
@@ -42,10 +45,12 @@ runScript := {
     FilesInfo.exists
   ) { _ =>
     if (!scalaBinDir.exists) {
-      IO.unzipURL(
-        url(s"https://downloads.lightbend.com/scala/${ver}/scala-$ver.zip"),
-        cacheDir
-      )
+      val downloadUrl =
+        if (ver.startsWith("3."))
+          s"https://github.com/lampepfl/dotty/releases/download/$ver/$scalaDir.zip"
+        else
+          s"https://downloads.lightbend.com/scala/${ver}/$scalaDir.zip"
+      IO.unzipURL(url(downloadUrl), cacheDir)
     }
     // Make sure we can execute scala/scalac from downloaded distro
     scalaBinDir

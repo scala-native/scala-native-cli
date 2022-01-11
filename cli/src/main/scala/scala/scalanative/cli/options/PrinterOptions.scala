@@ -32,7 +32,7 @@ object PrinterOptions {
       .text("Instead of passing class/object names, pass NIR file paths.")
     parser
       .opt[Unit]("verbose")
-      .abbr("-v")
+      .abbr("v")
       .optional()
       .action((_, c) => c.copy(verbose = true))
       .text("Print all informations about NIR, including method definitions.")
