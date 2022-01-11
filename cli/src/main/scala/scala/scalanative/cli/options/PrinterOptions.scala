@@ -14,7 +14,7 @@ object PrinterOptions {
   def set(parser: OptionParser[PrinterOptions]) = {
     parser
       .opt[String]("classpath")
-      .abbr("cp")
+      .abbr("-cp")
       .valueName("<path>")
       .optional()
       .unbounded()
