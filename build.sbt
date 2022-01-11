@@ -1,5 +1,5 @@
 val crossScalaVersions212 = (13 to 15).map(v => s"2.12.$v")
-val crossScalaVersions213 = (4 to 7).map(v => s"2.13.$v")
+val crossScalaVersions213 = (4 to 8).map(v => s"2.13.$v")
 val crossScalaVersions3 = Seq("3.1.0")
 val latestsScalaVersions =
   Seq(crossScalaVersions212, crossScalaVersions213, crossScalaVersions3).map(
