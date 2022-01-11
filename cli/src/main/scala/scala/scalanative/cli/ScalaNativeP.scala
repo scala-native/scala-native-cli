@@ -4,13 +4,12 @@ import java.nio.file.Paths
 import java.io.File
 import scala.scalanative.util.Scope
 import scala.scalanative.cli.options._
-import scala.scalanative.nir.Global
+import scala.scalanative.nir._
 import scala.scalanative.build.Config
 import scala.scalanative.linker.ClassLoader
 import java.nio.file.Path
 import scala.scalanative.io.VirtualDirectory
 import scala.scalanative.nir.serialization.deserializeBinary
-import scala.scalanative.nir.Defn
 import scala.annotation.tailrec
 import java.nio.ByteBuffer
 
@@ -67,12 +66,12 @@ object ScalaNativeP {
     }
 
     if (options.fromPath) printFromFiles(classpath, options)
-    else printFromNames(classpath, options.classNames)
+    else printFromNames(classpath, options)
   }
 
   private def printFromNames(
       classpath: List[Path],
-      args: Seq[String]
+      options: PrinterOptions
   ): Unit = {
     Scope { implicit scope =>
       val classLoader =
@@ -81,10 +80,10 @@ object ScalaNativeP {
         }
 
       for {
-        className <- args
+        className <- options.classNames
       } {
         classLoader.load(Global.Top(className)) match {
-          case Some(defns) => printNIR(defns)
+          case Some(defns) => printNIR(defns, options.verbose)
           case None => fail(s"Not found class/object with name `${className}`")
         }
       }
@@ -144,13 +143,18 @@ object ScalaNativeP {
             .orElse(fail(s"Not found file with name `${fileName}`"))
       } {
         val defns = deserializeBinary(content, fileName)
-        printNIR(defns)
+        printNIR(defns, options.verbose)
       }
     }
   }
 
-  private def printNIR(defns: Seq[Defn]) =
+  private def printNIR(defns: Seq[Defn], verbose: Boolean) =
     defns
+      .map {
+        case defn @ Defn.Define(attrs, name, ty, _) if !verbose =>
+          Defn.Declare(attrs, name, ty)(defn.pos)
+        case defn => defn
+      }
       .sortBy(_.name.mangle)
       .foreach { d =>
         println(d.show)
