@@ -7,9 +7,11 @@ set SCALANATIVE_BIN_VER=@SCALANATIVE_BIN_VER@
 
 for /F "tokens=5" %%i in (' scala -version 2^>^&1 1^>nul ') do set SCALA_VER=%%i
 
-if NOT "%SCALA_VER:~0,4%" == "%SCALA_BIN_VER%" (
-  echo "This bundle of Scala Native CLI is for %SCALA_BIN_VER%. Your scala version is %SCALA_VER%!" 1>&2
-  EXIT 1
+if NOT "%SCALA_BIN_VER%" == "3" (
+  if NOT "%SCALA_VER:~0,4%" == "%SCALA_BIN_VER%" (
+    echo "This bundle of Scala Native CLI is for %SCALA_BIN_VER%. Your scala version is %SCALA_VER%!" 1>&2
+    EXIT 1
+  )
 )
 
 set BASE=%~dp0\..\lib
@@ -17,5 +19,7 @@ set SUFFIX=_native%SCALANATIVE_BIN_VER%_%SCALA_BIN_VER%-%SCALANATIVE_VER%.jar
 
 set PLUGIN=%BASE%\nscplugin_%SCALA_VER%-%SCALANATIVE_VER%.jar
 set NATIVELIB=%BASE%\nativelib%SUFFIX%;%BASE%\clib%SUFFIX%;%BASE%\posixlib%SUFFIX%;%BASE%\windowslib%SUFFIX%;%BASE%\auxlib%SUFFIX%;%BASE%\javalib%SUFFIX%;%BASE%\scalalib%SUFFIX%
-  
+if "%SCALA_BIN_VER%" == "3" (
+  set NATIVELIB=%NATIVELIB% %BASE%\scala3lib%SUFFIX%
+)  
 scalac -classpath .;%NATIVELIB% -Xplugin:%PLUGIN% "%*"
