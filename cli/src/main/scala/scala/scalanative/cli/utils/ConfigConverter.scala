@@ -61,6 +61,7 @@ object ConfigConverter {
       .withCheckFatalWarnings(options.nativeConfig.checkFatalWarnings)
       .withDump(options.nativeConfig.dump)
       .withOptimize(!options.nativeConfig.noOptimize)
+      .withEmbedResources(options.nativeConfig.embedResources)
       .withTargetTriple(options.nativeConfig.targetTriple)
       .withClang(clang)
       .withClangPP(clangPP)
