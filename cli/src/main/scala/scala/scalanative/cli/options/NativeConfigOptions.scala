@@ -16,6 +16,7 @@ case class NativeConfigOptions(
     checkFatalWarnings: Boolean = false,
     dump: Boolean = false,
     noOptimize: Boolean = false,
+    embedResources: Boolean = false,
     ltp: List[String] = List.empty,
     linkingOption: List[String] = List.empty,
     compileOption: List[String] = List.empty,
@@ -80,6 +81,13 @@ object NativeConfigOptions {
         c.copy(nativeConfig = c.nativeConfig.copy(noOptimize = true))
       )
       .text("Should the resulting NIR code be not optimized? [false]")
+    parser
+      .opt[Unit]("embed-resources")
+      .optional()
+      .action((x, c) =>
+        c.copy(nativeConfig = c.nativeConfig.copy(embedResources = true))
+      )
+      .text("Shall resources file be embeded into executable? [false]")
     parser
       .opt[String]("ltp")
       .valueName("<keystring=value>")
