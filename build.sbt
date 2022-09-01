@@ -87,6 +87,10 @@ lazy val cli = project
     Compile / run / mainClass :=
       Some("scala.scalanative.cli.ScalaNativeLd"),
     scalacOptions += "-Ywarn-unused:imports",
+    scalacOptions ++= CrossVersion.partialVersion(scalaVersion.value).collect {
+      case (2, _) => "-target:jvm-1.8"
+      case (3, _) => "-Xtarget:8"
+    },
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
       "com.github.scopt" %% "scopt" % "4.0.1",
