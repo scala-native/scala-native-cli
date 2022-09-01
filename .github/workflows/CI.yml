@@ -6,8 +6,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        OS: [ubuntu-18.04, windows-2019]
-        scala: [2.12.15, 2.13.8, 3.1.1]
+        OS: [ubuntu-22.04, windows-2022]
+        scala: [2.12.15, 2.13.8, 3.2.0]
     steps:
       - uses: actions/checkout@v2
       - uses: olafurpg/setup-scala@v13
