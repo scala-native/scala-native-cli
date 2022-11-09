@@ -16,7 +16,7 @@ object ConfigOptions {
       .valueName("<main>")
       .optional()
       .action((x, c) => c.copy(config = c.config.copy(main = Some(x))))
-      .text("Required main class.")
+      .text("Main class - entry point for application")
     parser
       .opt[String]('o', "outpath")
       .valueName("<output-path>")

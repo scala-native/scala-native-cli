@@ -10,6 +10,7 @@ import scala.scalanative.build.GC
 import scala.scalanative.cli.utils.NativeConfigParserImplicits
 import scala.scalanative.build.Mode
 import scala.scalanative.build.LTO
+import scala.scalanative.build.BuildTarget
 
 class ConfigConverterTest extends AnyFlatSpec {
   val dummyConfigOptions = ConfigOptions(main = Some("Main"))
@@ -112,6 +113,28 @@ class ConfigConverterTest extends AnyFlatSpec {
     ltoAssertion("none", LTO.none)
     ltoAssertion("thin", LTO.thin)
     ltoAssertion("full", LTO.full)
+  }
+
+  it should "handle NativeConfig Buildtarget correctly" in {
+    def checkParser(stringValue: String, expected: BuildTarget) = {
+      import NativeConfigParserImplicits.buildTargetRead
+      val target = implicitly[scopt.Read[BuildTarget]].reads(stringValue)
+      val options = LinkerOptions(
+        classpath = dummyArguments.toList,
+        config = dummyConfigOptions,
+        nativeConfig = NativeConfigOptions(buildTarget = target)
+      )
+      val parsed =
+        ConfigConverter
+          .convert(options, dummyMain, dummyArguments)
+          .map(_.config.compilerConfig.buildTarget)
+
+      assert(parsed.contains(expected))
+    }
+    checkParser("application", BuildTarget.application)
+    checkParser("app", BuildTarget.application)
+    checkParser("library-dynamic", BuildTarget.libraryDynamic)
+    checkParser("library-static", BuildTarget.libraryStatic)
   }
 
   it should "set clang and clang++ correctly" in {

@@ -1,8 +1,6 @@
 package scala.scalanative.cli.utils
 
-import scala.scalanative.build.LTO
-import scala.scalanative.build.GC
-import scala.scalanative.build.Mode
+import scala.scalanative.build._
 
 object NativeConfigParserImplicits {
 
@@ -29,5 +27,13 @@ object NativeConfigParserImplicits {
       case "release-fast" => Mode.releaseFast
       case "release-full" => Mode.releaseFull
       case other          => throw new IllegalArgumentException(other)
+    }
+
+  implicit val buildTargetRead: scopt.Read[BuildTarget] =
+    scopt.Read.reads {
+      case "application" | "app" | "default"    => BuildTarget.application
+      case "library-dynamic" | "library-shared" => BuildTarget.libraryDynamic
+      case "library-static"                     => BuildTarget.libraryStatic
+      case other => throw new IllegalArgumentException(other)
     }
 }

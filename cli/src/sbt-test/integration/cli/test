@@ -27,3 +27,12 @@ $ mkdir native-dir
 > runCli --outpath target/out6 -v -v --workdir native-dir --dump --main Main
 $ exists native-dir/optimized.hnir
 $ exists target/out6
+
+# -- Build dynamic library
+> runCli --outpath target/out7 --build-target=library-dynamic
+$ exists target/out7
+
+# -- Build static library
+> runCli --outpath target/out8 --build-target=library-static
+$ exists target/out8
+

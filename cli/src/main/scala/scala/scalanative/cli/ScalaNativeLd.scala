@@ -1,12 +1,9 @@
 package scala.scalanative.cli
 
-import scala.scalanative.build.Build
+import scala.scalanative.build._
 import scala.scalanative.util.Scope
 import scala.scalanative.cli.utils.ConfigConverter
-import scala.scalanative.cli.options.LinkerOptions
-import scala.scalanative.cli.options.BuildInfo
-import scala.scalanative.cli.options.ConfigOptions
-import scala.scalanative.cli.options.NativeConfigOptions
+import scala.scalanative.cli.options._
 
 object ScalaNativeLd {
 
@@ -22,6 +19,7 @@ object ScalaNativeLd {
 
       ConfigOptions.set(this)
       NativeConfigOptions.set(this)
+      OptimizerConfigOptions.set(this)
 
       note("Logger options:")
       opt[Unit]("verbose")
@@ -50,7 +48,11 @@ object ScalaNativeLd {
   }
 
   def runLd(options: LinkerOptions) = {
-    if (options.config.main.isEmpty) {
+    val needsMain = options.nativeConfig.buildTarget match {
+      case BuildTarget.Application => true
+      case _: BuildTarget.Library  => false
+    }
+    if (needsMain && options.config.main.isEmpty) {
       println("Required option not specified: --main")
       sys.exit(1)
     } else {
@@ -59,7 +61,7 @@ object ScalaNativeLd {
       ignoredArgs.foreach { arg =>
         println(s"Unrecognised argument: ${arg}")
       }
-      val main = options.config.main.get
+      val main = options.config.main
       val buildOptionsMaybe = ConfigConverter.convert(options, main, classpath)
 
       buildOptionsMaybe match {

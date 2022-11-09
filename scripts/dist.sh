@@ -1,14 +1,15 @@
 #/bin/bash
 
-Version=0.4.5
+set -x
+Version=0.4.8
 Scala3Version=3.1.3
 ReleaseDir="${PWD}/release"
 TargetDir="${PWD}/cli/target"
 
+sbt "clean;+cli/cliPack"
+
 mkdir -p ${ReleaseDir}
 cd $ReleaseDir
-
-sbt clean;+cliPack
 
 for ScalaBinVer in 2.12 2.13 3; do
   ScalaVersion=$ScalaBinVer
