@@ -1,12 +1,10 @@
 package scala.scalanative.cli.utils
 
-import scala.scalanative.build.Config
-import scala.scalanative.build.NativeConfig
-import scala.scalanative.build.Discover
+import scala.scalanative.build._
 import java.nio.file.Paths
 import java.nio.file.Path
 import scala.util.Try
-import scala.scalanative.cli.options.LinkerOptions
+import scala.scalanative.cli.options._
 
 case class BuildOptions(
     config: Config,
@@ -14,10 +12,15 @@ case class BuildOptions(
 )
 
 object ConfigConverter {
-
   def convert(
       options: LinkerOptions,
       main: String,
+      classpath: Seq[String]
+  ): Either[Throwable, BuildOptions] = convert(options, Some(main), classpath)
+
+  def convert(
+      options: LinkerOptions,
+      main: Option[String],
       classpath: Seq[String]
   ): Either[Throwable, BuildOptions] = {
     if (classpath.isEmpty) {
@@ -68,26 +71,36 @@ object ConfigConverter {
       .withCompileOptions(options.nativeConfig.compileOption)
       .withLinkingOptions(options.nativeConfig.linkingOption)
       .withLinktimeProperties(ltp)
+      .withBuildTarget(options.nativeConfig.buildTarget)
+      .withOptimizerConfig(generateOptimizerConfig(options.optimizerConifg))
+  }
+
+  private def generateOptimizerConfig(
+      options: OptimizerConfigOptions
+  ): OptimizerConfig = {
+    val c0 = OptimizerConfig.empty
+    val c1 = options.maxInlineDepth.foldLeft(c0)(_.withMaxInlineDepth(_))
+    val c2 = options.maxCallerSize.foldLeft(c1)(_.withMaxCallerSize(_))
+    val c3 = options.maxInlineSize.foldLeft(c2)(_.withMaxInlineSize(_))
+    c3
   }
 
   private def generateConfig(
       options: LinkerOptions,
-      main: String,
+      main: Option[String],
       classPath: Seq[String]
   ): Either[Throwable, Config] = {
     for {
       nativeConfig <- generateNativeConfig(options)
       classPath <- Try(parseClassPath(classPath)).toEither
     } yield {
-      val config = Config.empty
+      val baseConfig = Config.empty
         .withWorkdir(Paths.get(options.config.workdir).toAbsolutePath())
         .withCompilerConfig(nativeConfig)
         .withClassPath(classPath)
-        .withMainClass(main)
+        .withLogger(new FilteredLogger(options.verbose))
 
-      val verbosity = options.verbose
-      val logger = new FilteredLogger(verbosity)
-      config.withLogger(logger)
+      main.foldLeft(baseConfig)(_.withMainClass(_))
     }
   }
 

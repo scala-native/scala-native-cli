@@ -2,13 +2,12 @@ package scala.scalanative.cli.options
 
 import scopt.OptionParser
 
-import scala.scalanative.build.LTO
-import scala.scalanative.build.Mode
-import scala.scalanative.build.GC
+import scala.scalanative.build._
 import scala.scalanative.cli.utils.NativeConfigParserImplicits._
 
 case class NativeConfigOptions(
     mode: Mode = Mode.debug,
+    buildTarget: BuildTarget = BuildTarget.application,
     lto: LTO = LTO.none,
     gc: GC = GC.immix,
     linkStubs: Boolean = false,
@@ -34,6 +33,16 @@ object NativeConfigOptions {
       .optional()
       .action((x, c) => c.copy(nativeConfig = c.nativeConfig.copy(mode = x)))
       .text("Scala Native compilation mode. [debug]")
+    parser
+      .opt[BuildTarget]("build-target")
+      .valueName(
+        "<build-target> (application, library-dynamic or library-static)"
+      )
+      .optional()
+      .action((x, c) =>
+        c.copy(nativeConfig = c.nativeConfig.copy(buildTarget = x))
+      )
+      .text("Scala Native build target. [application]")
     parser
       .opt[LTO]("lto")
       .valueName("<mode> (none, thin or full)")
