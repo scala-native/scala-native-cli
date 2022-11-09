@@ -10,7 +10,9 @@ case class OptimizerConfigOptions(
 
 object OptimizerConfigOptions {
   def set(parser: OptionParser[LinkerOptions]) = {
-    def update(c: LinkerOptions)(fn: OptimizerConfigOptions => OptimizerConfigOptions) =
+    def update(c: LinkerOptions)(
+        fn: OptimizerConfigOptions => OptimizerConfigOptions
+    ) =
       c.copy(optimizerConifg = fn(c.optimizerConifg))
     parser.note("Optimizer options:")
     parser
