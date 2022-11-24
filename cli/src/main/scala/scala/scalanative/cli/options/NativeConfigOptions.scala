@@ -16,6 +16,7 @@ case class NativeConfigOptions(
     dump: Boolean = false,
     noOptimize: Boolean = false,
     embedResources: Boolean = false,
+    incrementalCompilation: Boolean = false,
     ltp: List[String] = List.empty,
     linkingOption: List[String] = List.empty,
     compileOption: List[String] = List.empty,
@@ -97,6 +98,17 @@ object NativeConfigOptions {
         c.copy(nativeConfig = c.nativeConfig.copy(embedResources = true))
       )
       .text("Shall resources file be embeded into executable? [false]")
+    parser
+      .opt[Unit]("incremental-compilation")
+      .optional()
+      .action((x, c) =>
+        c.copy(nativeConfig =
+          c.nativeConfig.copy(incrementalCompilation = true)
+        )
+      )
+      .text(
+        "Shall use incremental compilation mode for builds? (experimental) [false]"
+      )
     parser
       .opt[String]("ltp")
       .valueName("<keystring=value>")

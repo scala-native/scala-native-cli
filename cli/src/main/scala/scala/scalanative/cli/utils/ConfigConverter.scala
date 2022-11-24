@@ -72,6 +72,7 @@ object ConfigConverter {
       .withLinkingOptions(options.nativeConfig.linkingOption)
       .withLinktimeProperties(ltp)
       .withBuildTarget(options.nativeConfig.buildTarget)
+      .withIncrementalCompilation(options.nativeConfig.incrementalCompilation)
       .withOptimizerConfig(generateOptimizerConfig(options.optimizerConifg))
   }
 
