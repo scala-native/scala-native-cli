@@ -53,13 +53,13 @@ object ScalaNativeLd {
       case _: BuildTarget.Library  => false
     }
     if (needsMain && options.config.main.isEmpty) {
-      println("Required option not specified: --main")
+      System.err.println("Required option not specified: --main")
       sys.exit(1)
     } else {
       val (ignoredArgs, classpath) =
         options.classpath.partition(_.startsWith("-"))
       ignoredArgs.foreach { arg =>
-        println(s"Unrecognised argument: ${arg}")
+        System.err.println(s"Unrecognised argument: ${arg}")
       }
       val main = options.config.main
       val buildOptionsMaybe = ConfigConverter.convert(options, main, classpath)
