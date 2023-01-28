@@ -25,6 +25,7 @@ object NativeConfigParserImplicits {
     scopt.Read.reads {
       case "debug"        => Mode.debug
       case "release-fast" => Mode.releaseFast
+      case "release-size" => Mode.releaseSize
       case "release-full" => Mode.releaseFull
       case other          => throw new IllegalArgumentException(other)
     }
