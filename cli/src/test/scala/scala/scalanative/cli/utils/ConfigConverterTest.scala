@@ -93,6 +93,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     modeAssertion("debug", Mode.debug)
     modeAssertion("release-fast", Mode.releaseFast)
     modeAssertion("release-full", Mode.releaseFull)
+    modeAssertion("release-size", Mode.releaseSize)
   }
 
   it should "handle NativeConfig LTO correctly" in {
