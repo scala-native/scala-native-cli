@@ -1,6 +1,10 @@
-val crossScalaVersions212 = (13 to 17).map("2.12." + _)
-val crossScalaVersions213 = (4 to 10).map("2.13." + _)
-val crossScalaVersions3 = (0 to 3).map("3.1." + _) ++ (0 to 2).map("3.2." + _)
+val crossScalaVersions212 = (13 to 18).map("2.12." + _)
+val crossScalaVersions213 = (4 to 11).map("2.13." + _)
+val crossScalaVersions3 =
+  (0 to 3).map("3.1." + _) ++
+    (0 to 2).map("3.2." + _) ++
+    (0 to 0).map("3.3." + _)
+
 val publishScalaVersions =
   Seq(crossScalaVersions212, crossScalaVersions213).map(_.last) ++ Seq("3.1.3")
 
@@ -51,7 +55,7 @@ val cliAssemblyJarName = settingKey[String]("Name of created assembly jar")
 inThisBuild(
   Def.settings(
     organization := "org.scala-native",
-    scalaNativeVersion := "0.4.12",
+    scalaNativeVersion := "0.4.13",
     version := scalaNativeVersion.value,
     scalaVersion := crossScalaVersions212.last,
     crossScalaVersions := publishScalaVersions,

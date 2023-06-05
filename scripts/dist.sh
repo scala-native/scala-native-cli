@@ -1,7 +1,7 @@
 #/bin/bash
 
 set -x
-Version=0.4.12
+Version=0.4.13
 Scala3Version=3.1.3
 ReleaseDir="${PWD}/release"
 TargetDir="${PWD}/cli/target"
