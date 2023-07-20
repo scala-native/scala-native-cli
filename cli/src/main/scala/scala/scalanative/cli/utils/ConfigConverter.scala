@@ -74,6 +74,10 @@ object ConfigConverter {
       .withBuildTarget(options.nativeConfig.buildTarget)
       .withIncrementalCompilation(options.nativeConfig.incrementalCompilation)
       .withOptimizerConfig(generateOptimizerConfig(options.optimizerConifg))
+      // TODO
+      .withBaseName(Paths.get(options.config.outpath).getFileName().toString().split('.').head)
+      .withMultithreadingSupport(true)
+      .withDebugMetadata(true)
   }
 
   private def generateOptimizerConfig(
@@ -94,15 +98,13 @@ object ConfigConverter {
     for {
       nativeConfig <- generateNativeConfig(options)
       classPath <- Try(parseClassPath(classPath)).toEither
-    } yield {
-      val baseConfig = Config.empty
-        .withWorkdir(Paths.get(options.config.workdir).toAbsolutePath())
-        .withCompilerConfig(nativeConfig)
-        .withClassPath(classPath)
-        .withLogger(new FilteredLogger(options.verbose))
+    } yield Config.empty
+      .withBaseDir(Paths.get(options.config.workdir).toAbsolutePath())
+      .withCompilerConfig(nativeConfig)
+      .withClassPath(classPath)
+      .withLogger(new FilteredLogger(options.verbose))
+      .withMainClass(main)
 
-      main.foldLeft(baseConfig)(_.withMainClass(_))
-    }
   }
 
   private def parseClassPath(classPath: Seq[String]): Seq[Path] =

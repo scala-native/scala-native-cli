@@ -55,7 +55,7 @@ val cliAssemblyJarName = settingKey[String]("Name of created assembly jar")
 inThisBuild(
   Def.settings(
     organization := "org.scala-native",
-    scalaNativeVersion := "0.4.15",
+    scalaNativeVersion := "0.5.0-SNAPSHOT",
     version := scalaNativeVersion.value,
     scalaVersion := crossScalaVersions212.last,
     crossScalaVersions := publishScalaVersions,
@@ -143,8 +143,9 @@ lazy val cliScriptedTests = project
 
 def nativeBinaryVersion(version: String): String = {
   val VersionPattern = raw"(\d+)\.(\d+)\.(\d+)(\-.*)?".r
-  val VersionPattern(major, minor, _, _) = version
-  s"$major.$minor"
+  val VersionPattern(major, minor, patch, milestone) = version
+  if (patch != null && milestone != null) version
+  else s"$major.$minor"
 }
 lazy val cliPackSettings = Def.settings(
   cliPackLibJars := {

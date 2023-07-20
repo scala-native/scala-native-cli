@@ -19,13 +19,13 @@ $ exists target/out1.exe
 
 # -- Do not write nir files if not specified
 > runCli --outpath target/out5 -v -v --main Main
--$ exists optimized.hnir
+-$ exists native/optimized.hnir
 $ exists target/out5
 
 # -- Write nir files to workdir if specified
 $ mkdir native-dir
 > runCli --outpath target/out6 -v -v --workdir native-dir --dump --main Main
-$ exists native-dir/optimized.hnir
+$ exists native-dir/native/optimized.hnir
 $ exists target/out6
 
 # -- Build dynamic library
