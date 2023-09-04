@@ -260,11 +260,14 @@ lazy val publishSettings = Def.settings(
   },
   credentials ++= {
     for {
-      realm <- sys.env.get("MAVEN_REALM")
-      domain <- sys.env.get("MAVEN_DOMAIN")
       user <- sys.env.get("MAVEN_USER")
       password <- sys.env.get("MAVEN_PASSWORD")
-    } yield Credentials(realm, domain, user, password)
+    } yield Credentials(
+      realm = "Sonatype Nexus Repository Manager",
+      host = "oss.sonatype.org",
+      userName = user,
+      passwd = password
+    )
   }.toSeq,
   developers ++= List(
     Developer(
