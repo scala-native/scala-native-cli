@@ -17,6 +17,19 @@ jobs:
           export LLVM_BIN=$(dirname $(readlink -f /usr/bin/clang))
           echo "LLVM_BIN=${LLVM_BIN}" >> $GITHUB_ENV
 
+      - name: Set env Windows
+        if: ${{ startsWith(matrix.OS, 'windows') }}
+        shell: pwsh
+        run: |
+          Choco-Install -PackageName llvm -ArgumentList "--version=16.0.6", "--allow-downgrade", "--force"
+          echo "${env:ProgramFiles}\LLVM\bin" | Out-File -FilePath ${env:GITHUB_PATH} -Encoding utf8 -Append
+          echo "LLVM_BIN=${env:ProgramFiles}\LLVM\bin" >> ${env:GITHUB_OUTPUT}
+
+      - name: Assert clang installed and on path
+        run: |
+          echo "LLVM_BIN=${env:LLVM_BIN}""
+          clang --version
+
       - name: Test
         run: >
           sbt 'set cli/scalaVersion := "${{matrix.scala}}"'
