@@ -5,8 +5,12 @@ val crossScalaVersions3 =
     (0 to 2).map("3.2." + _) ++
     (0 to 1).map("3.3." + _)
 
-val publishScalaVersions =
-  Seq(crossScalaVersions212, crossScalaVersions213).map(_.last) ++ Seq("3.1.3")
+val scala2_12 = crossScalaVersions212.last
+val scala2_13 = crossScalaVersions213.last
+val scala3 = crossScalaVersions3.last
+val scala3PublishVersion = "3.1.3"
+
+val publishScalaVersions = Seq(scala2_12, scala2_13, scala3PublishVersion)
 
 def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
   case "2.12" => crossScalaVersions212
@@ -19,27 +23,35 @@ def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
 }
 
 def scalaStdlibForBinaryVersion(
-    nativeBinVer: String,
-    scalaBinVer: String
-): Seq[String] = {
-  def depPattern(lib: String, v: String) =
-    s"${lib}_native${nativeBinVer}_${v}"
-  val scalalib = "scalalib"
-  val scala3lib = "scala3lib"
-  val commonLibs = Seq(
+    organization: String,
+    nativeVersion: String,
+    nativeBinaryVersion: String,
+    scalaBinaryVersion: String
+): Seq[ModuleID] = {
+  def artifact(module: String, binV: String, version: String = nativeVersion) =
+    organization % s"${module}_native${nativeBinaryVersion}_$binV" % version
+
+  def scalalibVersion(scalaBinVersion: String): String = {
+    val scalaVersion = scalaReleasesForBinaryVersion(scalaBinaryVersion).last
+    s"$scalaVersion+$nativeVersion"
+  }
+  def scalalib(binV: String) = artifact("scalalib", binV, scalalibVersion(binV))
+  val scala3lib = artifact("scalalib", "3", scalalibVersion("3"))
+  val runtimeLibraries = List(
     "nativelib",
     "clib",
     "posixlib",
     "windowslib",
     "javalib",
+    "javalibintf",
     "auxlib"
-  )
-  scalaBinVer match {
+  ).map(artifact(_, scalaBinaryVersion))
+
+  scalaBinaryVersion match {
     case "2.12" | "2.13" =>
-      (commonLibs :+ scalalib).map(depPattern(_, scalaBinVer))
+      scalalib(scalaBinaryVersion) :: runtimeLibraries
     case "3" =>
-      (commonLibs :+ scala3lib).map(depPattern(_, scalaBinVer)) :+
-        depPattern(scalalib, "2.13")
+      scala3lib :: scalalib("2.13") :: runtimeLibraries
     case ver =>
       throw new IllegalArgumentException(
         s"Unsupported binary scala version `${ver}`"
@@ -57,7 +69,7 @@ inThisBuild(
     organization := "org.scala-native",
     scalaNativeVersion := "0.5.0-SNAPSHOT",
     version := scalaNativeVersion.value,
-    scalaVersion := crossScalaVersions212.last,
+    scalaVersion := scala3PublishVersion,
     crossScalaVersions := publishScalaVersions,
     homepage := Some(url("http://www.scala-native.org")),
     startYear := Some(2021),
@@ -181,13 +193,15 @@ lazy val cliPackSettings = Def.settings(
     val scalaFullVers = scalaReleasesForBinaryVersion(scalaBinVer)
     val cliAssemblyJar = assembly.value
 
-    val scalaStdLibraryModuleIDs =
-      scalaStdlibForBinaryVersion(nativeBinVer, scalaBinVer)
-
     // Standard modules needed for linking of Scala Native
-    val stdLibModuleIDs = scalaStdLibraryModuleIDs.map(
-      scalaNativeOrg % _ % snVer
-    )
+    val stdLibModuleIDs =
+      scalaStdlibForBinaryVersion(
+        organization = scalaNativeOrg,
+        nativeVersion = snVer,
+        nativeBinaryVersion = nativeBinVer,
+        scalaBinaryVersion = scalaBinVer
+      )
+
     val compilerPluginModuleIDs =
       scalaFullVers.map(v => scalaNativeOrg % s"nscplugin_$v" % snVer)
     val allModuleIDs = (stdLibModuleIDs ++ compilerPluginModuleIDs).toVector
