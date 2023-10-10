@@ -4,9 +4,8 @@ on:
     tags:
     - 'v0.5.*'
   workflow_dispatch:
-  schedule:
-  # Snapshot release every second work day, Scala Native release is done at midnight
-  - cron: '5 0 * * 1,3,5'
+  repository_dispatch:
+    types: [nightly-published]
 
 jobs:
   publish:
