@@ -1,9 +1,9 @@
-val crossScalaVersions212 = (13 to 18).map("2.12." + _)
-val crossScalaVersions213 = (4 to 11).map("2.13." + _)
+val crossScalaVersions212 = (14 to 18).map("2.12." + _)
+val crossScalaVersions213 = (8 to 12).map("2.13." + _)
 val crossScalaVersions3 =
-  (0 to 3).map("3.1." + _) ++
+  (2 to 3).map("3.1." + _) ++
     (0 to 2).map("3.2." + _) ++
-    (0 to 0).map("3.3." + _)
+    (0 to 1).map("3.3." + _)
 
 val publishScalaVersions =
   Seq(crossScalaVersions212, crossScalaVersions213).map(_.last) ++ Seq("3.1.3")
@@ -74,7 +74,7 @@ inThisBuild(
           Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
       )
     ),
-    resolvers += Resolver.sonatypeRepo("snapshots"),
+    resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     resolvers += Resolver.mavenCentral,
     resolvers += Resolver.defaultLocal
   )
@@ -147,7 +147,28 @@ def nativeBinaryVersion(version: String): String = {
   if (patch != null && milestone != null) version
   else s"$major.$minor"
 }
+
+val nativeSourceExtensions = Set(".c", ".cpp", ".cxx", ".h", ".hpp", ".S")
+val DeduplicateOrRename = new sbtassembly.MergeStrategy {
+  def name: String = "deduplicate-or-rename"
+  def apply(
+      tempDir: java.io.File,
+      path: String,
+      files: Seq[java.io.File]
+  ): Either[String, Seq[(java.io.File, String)]] =
+    MergeStrategy.deduplicate(tempDir, path, files) match {
+      case v @ Right(_) => v
+      case _            => MergeStrategy.rename(tempDir, path, files)
+    }
+}
+
 lazy val cliPackSettings = Def.settings(
+  assemblyMergeStrategy := {
+    val default = assemblyMergeStrategy.value
+    file =>
+      if (nativeSourceExtensions.exists(file.endsWith)) DeduplicateOrRename
+      else default(file)
+  },
   cliPackLibJars := {
     val s = streams.value
     val log = s.log

@@ -1,12 +1,10 @@
 #/bin/bash
 
 set -x
-Version=0.4.14
+Version=$1
 Scala3Version=3.1.3
 ReleaseDir="${PWD}/release"
 TargetDir="${PWD}/cli/target"
-
-sbt "clean;+cli/cliPack"
 
 mkdir -p ${ReleaseDir}
 cd $ReleaseDir
