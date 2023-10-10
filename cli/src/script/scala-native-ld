@@ -23,5 +23,4 @@ else
     NATIVELIB="${NATIVELIB} $BASE/lib/scalalib_native${SCALANATIVE_BIN_VER}_${SCALA_BIN_VER}-${SCALA_VER}+${SCALANATIVE_VER}.jar"
 fi
 
-echo $NATIVELIB
 scala -classpath "$CLILIB" scala.scalanative.cli.ScalaNativeLd "$@" ${NATIVELIB}

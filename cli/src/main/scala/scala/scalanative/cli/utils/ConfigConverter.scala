@@ -55,7 +55,7 @@ object ConfigConverter {
         case Some(name) => Right(name)
         case _ =>
           Paths
-            .get(options.config.outpath.replaceAll(raw"[/\\]", File.separator))
+            .get(options.config.outpath.replaceAll(raw"[/\\\\]", File.separator))
             .getFileName()
             .toString()
             .split('.')
