@@ -181,7 +181,7 @@ lazy val cliPackSettings = Def.settings(
     val default = assemblyMergeStrategy.value
     file =>
       if (nativeSourceExtensions.exists(file.endsWith)) DeduplicateOrRename
-      else if(file.endsWith("scala-native.properties")) MergeStrategy.concat
+      else if (file.endsWith("scala-native.properties")) MergeStrategy.concat
       else default(file)
   },
   cliPackLibJars := {
@@ -273,7 +273,11 @@ lazy val cliPackSettings = Def.settings(
         .replaceAllLiterally(
           "@SCALANATIVE_BIN_VER@",
           nativeBinaryVersion(snVer)
-        ).replaceAllLiterally("@SCALALIB_2_13_FOR_3_VER@", crossScalaVersions213.last)
+        )
+        .replaceAllLiterally(
+          "@SCALALIB_2_13_FOR_3_VER@",
+          crossScalaVersions213.last
+        )
       val dest = trgBin / scriptFile.getName
       IO.write(dest, processedContent)
       if (scriptFile.canExecute)
