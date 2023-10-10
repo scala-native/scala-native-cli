@@ -1,9 +1,13 @@
 package scala.scalanative.cli
 
+import java.nio.file._
 import scala.scalanative.build._
 import scala.scalanative.util.Scope
 import scala.scalanative.cli.utils.ConfigConverter
 import scala.scalanative.cli.options._
+import scala.concurrent._
+import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object ScalaNativeLd {
 
@@ -69,9 +73,21 @@ object ScalaNativeLd {
           System.err.println(thrown.getMessage())
           sys.exit(1)
         case Right(buildOptions) =>
-          Scope { implicit scope =>
-            Build.build(buildOptions.config, buildOptions.outpath)
+          val outpath = Paths.get(options.config.outpath)
+          val build = Scope { implicit scope =>
+            Build
+              .build(buildOptions.config)
+              .map(
+                Files.copy(
+                  _,
+                  outpath,
+                  StandardCopyOption.REPLACE_EXISTING,
+                  StandardCopyOption.COPY_ATTRIBUTES
+                )
+              )
           }
+          Await.result(build, Duration.Inf)
+
       }
     }
   }

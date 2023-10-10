@@ -5,6 +5,7 @@ import java.nio.file.Paths
 import java.nio.file.Path
 import scala.util.Try
 import scala.scalanative.cli.options._
+import java.io.File
 
 case class BuildOptions(
     config: Config,
@@ -49,12 +50,36 @@ object ConfigConverter {
         optPath.map(Paths.get(_)).getOrElse(discover)
       }.toEither
 
+    def resolveBaseName: Either[Throwable, String] =
+      options.nativeConfig.baseName match {
+        case Some(name) => Right(name)
+        case _ =>
+          Paths
+            .get(
+              options.config.outpath
+                .replace('/', File.separatorChar)
+                .replace('\\', File.separatorChar)
+            )
+            .getFileName()
+            .toString()
+            .split('.')
+            .headOption match {
+            case Some(name) => Right(name)
+            case None =>
+              Left(
+                new IllegalArgumentException(
+                  s"Invalid output path, failed to resolve base name of output file for path '${options.config.outpath}'"
+                )
+              )
+          }
+      }
     for {
       clang <- toPathOrDiscover(options.nativeConfig.clang)(Discover.clang())
       clangPP <- toPathOrDiscover(options.nativeConfig.clangPP)(
         Discover.clangpp()
       )
       ltp <- LinktimePropertyParser.parseAll(options.nativeConfig.ltp)
+      baseName <- resolveBaseName
     } yield NativeConfig.empty
       .withMode(options.nativeConfig.mode)
       .withLTO(options.nativeConfig.lto)
@@ -74,6 +99,9 @@ object ConfigConverter {
       .withBuildTarget(options.nativeConfig.buildTarget)
       .withIncrementalCompilation(options.nativeConfig.incrementalCompilation)
       .withOptimizerConfig(generateOptimizerConfig(options.optimizerConifg))
+      .withBaseName(baseName)
+      .withMultithreadingSupport(options.nativeConfig.multithreadingSupport)
+      .withDebugMetadata(options.nativeConfig.debugMetadata)
   }
 
   private def generateOptimizerConfig(
@@ -94,15 +122,13 @@ object ConfigConverter {
     for {
       nativeConfig <- generateNativeConfig(options)
       classPath <- Try(parseClassPath(classPath)).toEither
-    } yield {
-      val baseConfig = Config.empty
-        .withWorkdir(Paths.get(options.config.workdir).toAbsolutePath())
-        .withCompilerConfig(nativeConfig)
-        .withClassPath(classPath)
-        .withLogger(new FilteredLogger(options.verbose))
+    } yield Config.empty
+      .withBaseDir(Paths.get(options.config.workdir).toAbsolutePath())
+      .withCompilerConfig(nativeConfig)
+      .withClassPath(classPath)
+      .withLogger(new FilteredLogger(options.verbose))
+      .withMainClass(main)
 
-      main.foldLeft(baseConfig)(_.withMainClass(_))
-    }
   }
 
   private def parseClassPath(classPath: Seq[String]): Seq[Path] =

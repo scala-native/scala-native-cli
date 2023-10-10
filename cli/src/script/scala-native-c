@@ -3,6 +3,7 @@
 SCALA_BIN_VER="@SCALA_BIN_VER@"
 SCALANATIVE_VER="@SCALANATIVE_VER@"
 SCALANATIVE_BIN_VER="@SCALANATIVE_BIN_VER@"
+SCALALIB_2_13_FOR_3_VER="@SCALALIB_2_13_FOR_3_VER@"
 SCALA_VER=$(scalac -version 2>&1 | grep -i scala | grep -o '[0-9]\.[0-9]\+\.[0-9]\+')
 
 if [ "$SCALA_BIN_VER" != "3" ] && [ "$(echo $SCALA_VER | cut -d '.' -f 1-2)" != "$SCALA_BIN_VER" ]; then
@@ -13,12 +14,17 @@ fi
 BASE="$(dirname $0)/.."
 PLUGIN="$BASE/lib/nscplugin_$SCALA_VER-$SCALANATIVE_VER.jar"
 NATIVELIB=""
-libs="nativelib clib posixlib windowslib auxlib javalib scalalib"
-if [ "$SCALA_BIN_VER" = "3" ]; then
-    libs="$libs scala3lib"
-fi
+libs="nativelib clib posixlib windowslib auxlib javalib"
 for lib in $libs; do
     NATIVELIB="${NATIVELIB}:$BASE/lib/${lib}_native${SCALANATIVE_BIN_VER}_$SCALA_BIN_VER-$SCALANATIVE_VER.jar"
 done
+NATIVELIB="${NATIVELIB}:$BASE/lib/javalib-intf-$SCALANATIVE_VER.jar"
+if [ "$SCALA_BIN_VER" = "3" ]; then
+    NATIVELIB="${NATIVELIB}:$BASE/lib/scalalib_native${SCALANATIVE_BIN_VER}_2.13-${SCALALIB_2_13_FOR_3_VER}+${SCALANATIVE_VER}.jar"
+    NATIVELIB="${NATIVELIB}:$BASE/lib/scala3lib_native${SCALANATIVE_BIN_VER}_3-${SCALA_VER}+${SCALANATIVE_VER}.jar"
+else
+    NATIVELIB="${NATIVELIB}:$BASE/lib/scalalib_native${SCALANATIVE_BIN_VER}_${SCALA_BIN_VER}-${SCALA_VER}+${SCALANATIVE_VER}.jar"
+fi
 
+echo $NATIVELIB
 scalac -classpath ".:$NATIVELIB" "-Xplugin:$PLUGIN" "$@"

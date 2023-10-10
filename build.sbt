@@ -1,12 +1,16 @@
-val crossScalaVersions212 = (13 to 18).map("2.12." + _)
-val crossScalaVersions213 = (4 to 11).map("2.13." + _)
+val crossScalaVersions212 = (14 to 18).map("2.12." + _)
+val crossScalaVersions213 = (8 to 12).map("2.13." + _)
 val crossScalaVersions3 =
-  (0 to 3).map("3.1." + _) ++
+  (2 to 3).map("3.1." + _) ++
     (0 to 2).map("3.2." + _) ++
-    (0 to 0).map("3.3." + _)
+    (0 to 1).map("3.3." + _)
 
-val publishScalaVersions =
-  Seq(crossScalaVersions212, crossScalaVersions213).map(_.last) ++ Seq("3.1.3")
+val scala2_12 = crossScalaVersions212.last
+val scala2_13 = crossScalaVersions213.last
+val scala3 = crossScalaVersions3.last
+val scala3PublishVersion = "3.1.3"
+
+val publishScalaVersions = Seq(scala2_12, scala2_13, scala3PublishVersion)
 
 def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
   case "2.12" => crossScalaVersions212
@@ -19,27 +23,37 @@ def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
 }
 
 def scalaStdlibForBinaryVersion(
-    nativeBinVer: String,
-    scalaBinVer: String
-): Seq[String] = {
-  def depPattern(lib: String, v: String) =
-    s"${lib}_native${nativeBinVer}_${v}"
-  val scalalib = "scalalib"
-  val scala3lib = "scala3lib"
-  val commonLibs = Seq(
+    organization: String,
+    nativeVersion: String,
+    nativeBinaryVersion: String,
+    scalaBinaryVersion: String
+): Seq[ModuleID] = {
+  def artifact(module: String, binV: String, version: String = nativeVersion) =
+    organization % s"${module}_native${nativeBinaryVersion}_$binV" % version
+
+  def scalalibVersion(scalaBinVersion: String): String = {
+    val scalaVersion = scalaReleasesForBinaryVersion(scalaBinaryVersion).last
+    s"$scalaVersion+$nativeVersion"
+  }
+  def scalalib(binV: String) = artifact("scalalib", binV, scalalibVersion(binV))
+  val scala3lib = artifact("scalalib", "3", scalalibVersion("3"))
+  val crossRuntimeLibraries = List(
     "nativelib",
     "clib",
     "posixlib",
     "windowslib",
     "javalib",
     "auxlib"
-  )
-  scalaBinVer match {
-    case "2.12" | "2.13" =>
-      (commonLibs :+ scalalib).map(depPattern(_, scalaBinVer))
-    case "3" =>
-      (commonLibs :+ scala3lib).map(depPattern(_, scalaBinVer)) :+
-        depPattern(scalalib, "2.13")
+  ).map(artifact(_, scalaBinaryVersion))
+
+  val nonCrossRuntimeLibraries = List("javalib-intf")
+    .map(organization % _ % nativeVersion)
+
+  val runtimeLibraries = crossRuntimeLibraries ++ nonCrossRuntimeLibraries
+
+  scalaBinaryVersion match {
+    case "2.12" | "2.13" => scalalib(scalaBinaryVersion) :: runtimeLibraries
+    case "3"             => scala3lib :: scalalib("2.13") :: runtimeLibraries
     case ver =>
       throw new IllegalArgumentException(
         s"Unsupported binary scala version `${ver}`"
@@ -55,9 +69,9 @@ val cliAssemblyJarName = settingKey[String]("Name of created assembly jar")
 inThisBuild(
   Def.settings(
     organization := "org.scala-native",
-    scalaNativeVersion := "0.4.15",
+    scalaNativeVersion := "0.5.0-SNAPSHOT",
     version := scalaNativeVersion.value,
-    scalaVersion := crossScalaVersions212.last,
+    scalaVersion := scala3PublishVersion,
     crossScalaVersions := publishScalaVersions,
     homepage := Some(url("http://www.scala-native.org")),
     startYear := Some(2021),
@@ -74,7 +88,7 @@ inThisBuild(
           Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
       )
     ),
-    resolvers += Resolver.sonatypeRepo("snapshots"),
+    resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     resolvers += Resolver.mavenCentral,
     resolvers += Resolver.defaultLocal
   )
@@ -143,10 +157,33 @@ lazy val cliScriptedTests = project
 
 def nativeBinaryVersion(version: String): String = {
   val VersionPattern = raw"(\d+)\.(\d+)\.(\d+)(\-.*)?".r
-  val VersionPattern(major, minor, _, _) = version
-  s"$major.$minor"
+  val VersionPattern(major, minor, patch, milestone) = version
+  if (patch != null && milestone != null) version
+  else s"$major.$minor"
 }
+
+val nativeSourceExtensions = Set(".c", ".cpp", ".cxx", ".h", ".hpp", ".S")
+val DeduplicateOrRename = new sbtassembly.MergeStrategy {
+  def name: String = "deduplicate-or-rename"
+  def apply(
+      tempDir: java.io.File,
+      path: String,
+      files: Seq[java.io.File]
+  ): Either[String, Seq[(java.io.File, String)]] =
+    MergeStrategy.deduplicate(tempDir, path, files) match {
+      case v @ Right(_) => v
+      case _            => MergeStrategy.rename(tempDir, path, files)
+    }
+}
+
 lazy val cliPackSettings = Def.settings(
+  assemblyMergeStrategy := {
+    val default = assemblyMergeStrategy.value
+    file =>
+      if (nativeSourceExtensions.exists(file.endsWith)) DeduplicateOrRename
+      else if (file.endsWith("scala-native.properties")) MergeStrategy.concat
+      else default(file)
+  },
   cliPackLibJars := {
     val s = streams.value
     val log = s.log
@@ -159,13 +196,15 @@ lazy val cliPackSettings = Def.settings(
     val scalaFullVers = scalaReleasesForBinaryVersion(scalaBinVer)
     val cliAssemblyJar = assembly.value
 
-    val scalaStdLibraryModuleIDs =
-      scalaStdlibForBinaryVersion(nativeBinVer, scalaBinVer)
-
     // Standard modules needed for linking of Scala Native
-    val stdLibModuleIDs = scalaStdLibraryModuleIDs.map(
-      scalaNativeOrg % _ % snVer
-    )
+    val stdLibModuleIDs =
+      scalaStdlibForBinaryVersion(
+        organization = scalaNativeOrg,
+        nativeVersion = snVer,
+        nativeBinaryVersion = nativeBinVer,
+        scalaBinaryVersion = scalaBinVer
+      )
+
     val compilerPluginModuleIDs =
       scalaFullVers.map(v => scalaNativeOrg % s"nscplugin_$v" % snVer)
     val allModuleIDs = (stdLibModuleIDs ++ compilerPluginModuleIDs).toVector
@@ -235,6 +274,10 @@ lazy val cliPackSettings = Def.settings(
           "@SCALANATIVE_BIN_VER@",
           nativeBinaryVersion(snVer)
         )
+        .replaceAllLiterally(
+          "@SCALALIB_2_13_FOR_3_VER@",
+          crossScalaVersions213.last
+        )
       val dest = trgBin / scriptFile.getName
       IO.write(dest, processedContent)
       if (scriptFile.canExecute)
@@ -259,11 +302,14 @@ lazy val publishSettings = Def.settings(
   },
   credentials ++= {
     for {
-      realm <- sys.env.get("MAVEN_REALM")
-      domain <- sys.env.get("MAVEN_DOMAIN")
       user <- sys.env.get("MAVEN_USER")
       password <- sys.env.get("MAVEN_PASSWORD")
-    } yield Credentials(realm, domain, user, password)
+    } yield Credentials(
+      realm = "Sonatype Nexus Repository Manager",
+      host = "oss.sonatype.org",
+      userName = user,
+      passwd = password
+    )
   }.toSeq,
   developers ++= List(
     Developer(

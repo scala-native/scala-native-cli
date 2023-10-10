@@ -16,7 +16,10 @@ case class NativeConfigOptions(
     dump: Boolean = false,
     noOptimize: Boolean = false,
     embedResources: Boolean = false,
+    multithreadingSupport: Boolean = true,
+    debugMetadata: Boolean = false,
     incrementalCompilation: Boolean = false,
+    baseName: Option[String] = None,
     ltp: List[String] = List.empty,
     linkingOption: List[String] = List.empty,
     compileOption: List[String] = List.empty,
@@ -108,6 +111,38 @@ object NativeConfigOptions {
       )
       .text(
         "Shall use incremental compilation mode for builds? (experimental) [false]"
+      )
+    parser
+      .opt[Boolean]("multithreading")
+      .abbr("-mt")
+      .optional()
+      .action((x, c) =>
+        c.copy(nativeConfig = c.nativeConfig.copy(multithreadingSupport = x))
+      )
+      .text(
+        "Should the target enable multihreading support for builds? [true]"
+      )
+    parser
+      .opt[Boolean]("debug-info")
+      .abbr("-g")
+      .optional()
+      .action((x, c) =>
+        c.copy(nativeConfig = c.nativeConfig.copy(debugMetadata = x))
+      )
+      .text(
+        "Should the build include additional debug information? These can be used for better stacktraces or debuging support [false]"
+      )
+    parser
+      .opt[String]("base-name")
+      .optional()
+      .action((x, c) =>
+        c.copy(nativeConfig =
+          c.nativeConfig
+            .copy(baseName = Some(x).map(_.trim()).filter(_.nonEmpty))
+        )
+      )
+      .text(
+        "Base name (without extension) used to generate names for build outputs. If empty `--base-name` would be resolved from `--outpath`"
       )
     parser
       .opt[String]("ltp")
