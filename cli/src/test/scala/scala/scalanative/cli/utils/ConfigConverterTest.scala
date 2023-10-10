@@ -199,4 +199,75 @@ class ConfigConverterTest extends AnyFlatSpec {
       }
     )
   }
+
+  it should "sets boolean options" in {
+    val optionsPositive = LinkerOptions(
+      classpath = dummyArguments.toList,
+      config = dummyConfigOptions,
+      nativeConfig = NativeConfigOptions(
+        multithreadingSupport = true,
+        debugMetadata = true
+      )
+    )
+    val optionsNegative = LinkerOptions(
+      classpath = dummyArguments.toList,
+      config = dummyConfigOptions,
+      nativeConfig = NativeConfigOptions(
+        multithreadingSupport = false,
+        debugMetadata = false
+      )
+    )
+    val parsed = for {
+      positive <- ConfigConverter
+        .convert(optionsPositive, dummyMain, dummyArguments)
+        .map(_.config.compilerConfig)
+      negative <- ConfigConverter
+        .convert(optionsNegative, dummyMain, dummyArguments)
+        .map(_.config.compilerConfig)
+    } yield (positive, negative)
+
+    parsed.fold(
+      fail(_),
+      { case (positive, negative) =>
+        assert(positive.multithreadingSupport != negative.multithreadingSupport)
+        assert(positive.debugMetadata != negative.debugMetadata)
+      }
+    )
+  }
+
+  it should "handles base name resolving from outpath" in {
+    for (
+      path <- Seq(
+        "foo/bar/baz.exe",
+        "foo\\bar\\baz.exe",
+        "baz",
+        "baz.exe",
+        "baz.so",
+        "baz.dll"
+      )
+    ) {
+      val options = LinkerOptions(
+        classpath = dummyArguments.toList,
+        config = dummyConfigOptions.copy(outpath = path),
+        nativeConfig = NativeConfigOptions(baseName = None)
+      )
+      val resolved = ConfigConverter
+        .convert(options, dummyMain, dummyArguments)
+        .map(_.config.compilerConfig)
+        .getOrElse(fail(s"failed to convert path=$path"))
+      assert(resolved.baseName == "baz")
+    }
+  }
+  it should "prioritize baseName over outpath" in {
+    val options = LinkerOptions(
+      classpath = dummyArguments.toList,
+      config = dummyConfigOptions.copy(outpath = "my-bin.exe"),
+      nativeConfig = NativeConfigOptions(baseName = Some("my-app"))
+    )
+    val resolved = ConfigConverter
+      .convert(options, dummyMain, dummyArguments)
+      .map(_.config)
+      .getOrElse(fail(s"failed to convert"))
+    assert(resolved.baseName == "my-app")
+  }
 }

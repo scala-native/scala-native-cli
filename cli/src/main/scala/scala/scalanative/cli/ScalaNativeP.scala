@@ -151,7 +151,7 @@ object ScalaNativeP {
   private def printNIR(defns: Seq[Defn], verbose: Boolean) =
     defns
       .map {
-        case defn @ Defn.Define(attrs, name, ty, _) if !verbose =>
+        case defn @ Defn.Define(attrs, name, ty, _, _) if !verbose =>
           Defn.Declare(attrs, name, ty)(defn.pos)
         case defn => defn
       }

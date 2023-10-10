@@ -5,6 +5,7 @@ import java.nio.file.Paths
 import java.nio.file.Path
 import scala.util.Try
 import scala.scalanative.cli.options._
+import java.io.File
 
 case class BuildOptions(
     config: Config,
@@ -49,12 +50,32 @@ object ConfigConverter {
         optPath.map(Paths.get(_)).getOrElse(discover)
       }.toEither
 
+    def resolveBaseName: Either[Throwable, String] =
+      options.nativeConfig.baseName match {
+        case Some(name) => Right(name)
+        case _ =>
+          Paths
+            .get(options.config.outpath.replaceAll(raw"[/\\]", File.separator))
+            .getFileName()
+            .toString()
+            .split('.')
+            .headOption match {
+            case Some(name) => Right(name)
+            case None =>
+              Left(
+                new IllegalArgumentException(
+                  s"Invalid output path, failed to resolve base name of output file for path '${options.config.outpath}'"
+                )
+              )
+          }
+      }
     for {
       clang <- toPathOrDiscover(options.nativeConfig.clang)(Discover.clang())
       clangPP <- toPathOrDiscover(options.nativeConfig.clangPP)(
         Discover.clangpp()
       )
       ltp <- LinktimePropertyParser.parseAll(options.nativeConfig.ltp)
+      baseName <- resolveBaseName
     } yield NativeConfig.empty
       .withMode(options.nativeConfig.mode)
       .withLTO(options.nativeConfig.lto)
@@ -74,10 +95,9 @@ object ConfigConverter {
       .withBuildTarget(options.nativeConfig.buildTarget)
       .withIncrementalCompilation(options.nativeConfig.incrementalCompilation)
       .withOptimizerConfig(generateOptimizerConfig(options.optimizerConifg))
-      // TODO
-      .withBaseName(Paths.get(options.config.outpath).getFileName().toString().split('.').head)
-      .withMultithreadingSupport(true)
-      .withDebugMetadata(true)
+      .withBaseName(baseName)
+      .withMultithreadingSupport(options.nativeConfig.multithreadingSupport)
+      .withDebugMetadata(options.nativeConfig.debugMetadata)
   }
 
   private def generateOptimizerConfig(
