@@ -16,20 +16,22 @@ if NOT "%SCALA_BIN_VER%" == "3" (
 )
 
 set BASE=%~dp0\..
-set PLUGIN=%BASE%\lib\nscplugin_%SCALA_VER%-%SCALANATIVE_VER%.jar
-set NATIVELIB=
+set PLUGIN="%BASE%\lib\nscplugin_%SCALA_VER%-%SCALANATIVE_VER%.jar"
 
-for %%i in (nativelib clib posixlib windowslib auxlib javalib) do (
-  set NATIVELIB=!NATIVELIB!;%BASE%\lib\%%i_native%SCALANATIVE_BIN_VER%_%SCALA_BIN_VER%-%SCALANATIVE_VER%.jar
-)
-
-set NATIVELIB=!NATIVELIB!;%BASE%\lib\javalib-intf-%SCALANATIVE_VER%.jar
+set NATIVELIB=.
+set NATIVELIB=%NATIVELIB%;"%BASE%\lib\nativelib%SUFFIX%"
+set NATIVELIB=%NATIVELIB%;"%BASE%\lib\clib%SUFFIX%"
+set NATIVELIB=%NATIVELIB%;"%BASE%\lib\posixlib%SUFFIX%"
+set NATIVELIB=%NATIVELIB%;"%BASE%\lib\windowslib%SUFFIX%"
+set NATIVELIB=%NATIVELIB%;"%BASE%\lib\auxlib%SUFFIX%"
+set NATIVELIB=%NATIVELIB%;"%BASE%\lib\javalib%SUFFIX%"
+set NATIVELIB=%NATIVELIB%;"%BASE%\lib\javalib-intf-%SCALANATIVE_VER%.jar"
 
 if "%SCALA_BIN_VER%" == "3" (
-  set NATIVELIB=!NATIVELIB!;%BASE%\lib\scalalib_native%SCALANATIVE_BIN_VER%_2.13-%SCALALIB_2_13_FOR_3_VER%+%SCALANATIVE_VER%.jar
-  set NATIVELIB=!NATIVELIB!;%BASE%\lib\scala3lib_native%SCALANATIVE_BIN_VER%_3-%SCALA_VER%+%SCALANATIVE_VER%.jar
+  set NATIVELIB=%NATIVELIB%;"%BASE%\lib\scalalib_native%SCALANATIVE_BIN_VER%_2.13-%SCALALIB_2_13_FOR_3_VER%+%SCALANATIVE_VER%.jar"
+  set NATIVELIB=%NATIVELIB%;"%BASE%\lib\scala3lib_native%SCALANATIVE_BIN_VER%_3-%SCALA_VER%+%SCALANATIVE_VER%.jar"
 ) else (
-  set NATIVELIB=!NATIVELIB!;%BASE%\lib\scalalib_native%SCALANATIVE_BIN_VER%_%SCALA_BIN_VER%-%SCALA_VER%+%SCALANATIVE_VER%.jar
+  set NATIVELIB=%NATIVELIB%;"%BASE%\lib\scalalib_native%SCALANATIVE_BIN_VER%_%SCALA_BIN_VER%-%SCALA_VER%+%SCALANATIVE_VER%.jar"
 )
 
-scalac -classpath .;!NATIVELIB! -Xplugin:!PLUGIN! "%*"
+scalac -classpath %NATIVELIB% -Xplugin:%PLUGIN% "%*"
