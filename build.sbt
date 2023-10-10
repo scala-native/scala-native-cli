@@ -37,21 +37,23 @@ def scalaStdlibForBinaryVersion(
   }
   def scalalib(binV: String) = artifact("scalalib", binV, scalalibVersion(binV))
   val scala3lib = artifact("scalalib", "3", scalalibVersion("3"))
-  val runtimeLibraries = List(
+  val crossRuntimeLibraries = List(
     "nativelib",
     "clib",
     "posixlib",
     "windowslib",
     "javalib",
-    "javalibintf",
     "auxlib"
   ).map(artifact(_, scalaBinaryVersion))
 
+  val nonCrossRuntimeLibraries = List("javalib-intf")
+    .map(organization % _ % nativeVersion)
+
+  val runtimeLibraries = crossRuntimeLibraries ++ nonCrossRuntimeLibraries
+
   scalaBinaryVersion match {
-    case "2.12" | "2.13" =>
-      scalalib(scalaBinaryVersion) :: runtimeLibraries
-    case "3" =>
-      scala3lib :: scalalib("2.13") :: runtimeLibraries
+    case "2.12" | "2.13" => scalalib(scalaBinaryVersion) :: runtimeLibraries
+    case "3"             => scala3lib :: scalalib("2.13") :: runtimeLibraries
     case ver =>
       throw new IllegalArgumentException(
         s"Unsupported binary scala version `${ver}`"
