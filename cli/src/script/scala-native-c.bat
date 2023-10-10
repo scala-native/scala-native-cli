@@ -16,6 +16,8 @@ if NOT "%SCALA_BIN_VER%" == "3" (
 )
 
 set BASE=%~dp0\..\lib
+set SUFFIX=_native%SCALANATIVE_BIN_VER%_%SCALA_BIN_VER%-%SCALANATIVE_VER%.jar
+
 set PLUGIN="%BASE%\nscplugin_%SCALA_VER%-%SCALANATIVE_VER%.jar"
 
 set NATIVELIB=.

@@ -8,7 +8,7 @@ set SCALALIB_2_13_FOR_3_VER=@SCALALIB_2_13_FOR_3_VER@
 
 for /F "tokens=5" %%i in (' scala -version 2^>^&1 ^| findstr /i scala ^| findstr /o [0-9]*\.[0-9]*\.[0-9]*') do set SCALA_VER=%%i
 
-set BASE=%~dp0\..lib
+set BASE=%~dp0\..\lib
 set SUFFIX=_native%SCALANATIVE_BIN_VER%_%SCALA_BIN_VER%-%SCALANATIVE_VER%.jar
 
 set CLILIB="%BASE%\scala-native-cli-assembly_%SCALA_BIN_VER%-%SCALANATIVE_VER%.jar"
