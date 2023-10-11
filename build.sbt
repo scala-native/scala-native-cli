@@ -36,7 +36,7 @@ def scalaStdlibForBinaryVersion(
     s"$scalaVersion+$nativeVersion"
   }
   def scalalib(binV: String) = artifact("scalalib", binV, scalalibVersion(binV))
-  val scala3lib = artifact("scalalib", "3", scalalibVersion("3"))
+  val scala3lib = artifact("scala3lib", "3", scalalibVersion("3"))
   val crossRuntimeLibraries = List(
     "nativelib",
     "clib",
