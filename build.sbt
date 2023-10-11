@@ -32,7 +32,7 @@ def scalaStdlibForBinaryVersion(
     organization % s"${module}_native${nativeBinaryVersion}_$binV" % version
 
   def scalalibVersion(scalaBinVersion: String): String = {
-    val scalaVersion = scalaReleasesForBinaryVersion(scalaBinaryVersion).last
+    val scalaVersion = scalaReleasesForBinaryVersion(scalaBinVersion).last
     s"$scalaVersion+$nativeVersion"
   }
   def scalalib(binV: String) = artifact("scalalib", binV, scalalibVersion(binV))
