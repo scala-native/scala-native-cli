@@ -37,9 +37,9 @@ jobs:
 
       - name: Create release artifacts
         run: |
-          version=$(sbt "print cli/version" | tail -n1)
+          version=$(sbt "print cli/version" | grep . | tail -n 2 | head -n 1)
           echo "This build version: $version"
-          ./scritps/dist.sh $version
+          ./scripts/dist.sh $version
 
       - name: Archive CLI artifacts
         uses: actions/upload-artifact@v3
