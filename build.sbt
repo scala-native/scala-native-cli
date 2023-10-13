@@ -3,10 +3,14 @@ val crossScalaVersions213 = (4 to 11).map("2.13." + _)
 val crossScalaVersions3 =
   (0 to 3).map("3.1." + _) ++
     (0 to 2).map("3.2." + _) ++
-    (0 to 0).map("3.3." + _)
+    (0 to 1).map("3.3." + _)
 
-val publishScalaVersions =
-  Seq(crossScalaVersions212, crossScalaVersions213).map(_.last) ++ Seq("3.1.3")
+val scala2_12 = crossScalaVersions212.last
+val scala2_13 = crossScalaVersions213.last
+val scala3 = crossScalaVersions3.last
+val scala3PublishVersion = "3.1.3"
+
+val publishScalaVersions = Seq(scala2_12, scala2_13, scala3PublishVersion)
 
 def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
   case "2.12" => crossScalaVersions212
@@ -57,7 +61,7 @@ inThisBuild(
     organization := "org.scala-native",
     scalaNativeVersion := "0.4.15",
     version := scalaNativeVersion.value,
-    scalaVersion := crossScalaVersions212.last,
+    scalaVersion := scala3PublishVersion,
     crossScalaVersions := publishScalaVersions,
     homepage := Some(url("http://www.scala-native.org")),
     startYear := Some(2021),
@@ -74,7 +78,7 @@ inThisBuild(
           Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
       )
     ),
-    resolvers += Resolver.sonatypeRepo("snapshots"),
+    resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     resolvers += Resolver.mavenCentral,
     resolvers += Resolver.defaultLocal
   )
@@ -143,8 +147,9 @@ lazy val cliScriptedTests = project
 
 def nativeBinaryVersion(version: String): String = {
   val VersionPattern = raw"(\d+)\.(\d+)\.(\d+)(\-.*)?".r
-  val VersionPattern(major, minor, _, _) = version
-  s"$major.$minor"
+  val VersionPattern(major, minor, patch, milestone) = version
+  if (patch != null && milestone != null) version
+  else s"$major.$minor"
 }
 lazy val cliPackSettings = Def.settings(
   cliPackLibJars := {
@@ -259,11 +264,14 @@ lazy val publishSettings = Def.settings(
   },
   credentials ++= {
     for {
-      realm <- sys.env.get("MAVEN_REALM")
-      domain <- sys.env.get("MAVEN_DOMAIN")
       user <- sys.env.get("MAVEN_USER")
       password <- sys.env.get("MAVEN_PASSWORD")
-    } yield Credentials(realm, domain, user, password)
+    } yield Credentials(
+      realm = "Sonatype Nexus Repository Manager",
+      host = "oss.sonatype.org",
+      userName = user,
+      passwd = password
+    )
   }.toSeq,
   developers ++= List(
     Developer(

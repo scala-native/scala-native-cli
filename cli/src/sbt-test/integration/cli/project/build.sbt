@@ -1,4 +1,4 @@
-resolvers += Resolver.sonatypeRepo("snapshots")
+resolvers ++= Resolver.sonatypeOssRepos("snapshots")
 
 val pluginVersion = System.getProperty("plugin.version")
 if (pluginVersion == null)
