@@ -11,7 +11,6 @@ import java.nio.file.Path
 import scala.scalanative.io.VirtualDirectory
 import scala.scalanative.nir.serialization.deserializeBinary
 import scala.annotation.tailrec
-import java.nio.ByteBuffer
 
 object ScalaNativeP {
 
@@ -109,40 +108,34 @@ object ScalaNativeP {
       def findInClasspathAndRead(
           classpath: Stream[VirtualDirectory],
           path: Path
-      ): Option[ByteBuffer] = {
+      ): Option[(VirtualDirectory, Path)] = {
         classpath match {
-          case Stream.Empty => None
           case dir #:: tail =>
             val found = dir.files
               .find(virtualDirPathMatches(_, path))
-              .map(dir.read(_))
             if (found.isEmpty) findInClasspathAndRead(tail, path)
-            else found
+            else found.map(VirtualDirectory.real(_) -> path)
+          case _ => None
         }
       }
 
-      def tryReadFromPath(path: Path): Option[ByteBuffer] = {
+      def tryReadFromPath(path: Path): Option[(VirtualDirectory, Path)] = {
         val file = path.toFile()
         val absPath = path.toAbsolutePath()
         // When classpath is explicitly provided don't try to read directly
         if (!options.usingDefaultClassPath || !file.exists()) None
-        else
-          util.Try {
-            VirtualDirectory
-              .real(absPath.getParent())
-              .read(absPath.getFileName())
-          }.toOption
+        else Some(VirtualDirectory.real(absPath.getParent()) -> absPath.getFileName())
       }
 
       for {
         fileName <- options.classNames
         path = Paths.get(fileName).normalize()
-        content <-
+        (directory, dirPath)  <-
           tryReadFromPath(path)
             .orElse(findInClasspathAndRead(cp, path))
             .orElse(fail(s"Not found file with name `${fileName}`"))
       } {
-        val defns = deserializeBinary(content, fileName)
+        val defns = deserializeBinary(directory, dirPath)
         printNIR(defns, options.verbose)
       }
     }

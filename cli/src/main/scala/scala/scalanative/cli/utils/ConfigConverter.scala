@@ -101,7 +101,7 @@ object ConfigConverter {
       .withOptimizerConfig(generateOptimizerConfig(options.optimizerConifg))
       .withBaseName(baseName)
       .withMultithreadingSupport(options.nativeConfig.multithreadingSupport)
-      .withDebugMetadata(options.nativeConfig.debugMetadata)
+      .withSourceLevelDebuggingConfig(_.enabled(options.nativeConfig.debugMetadata))
   }
 
   private def generateOptimizerConfig(
