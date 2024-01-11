@@ -124,13 +124,16 @@ object ScalaNativeP {
         val absPath = path.toAbsolutePath()
         // When classpath is explicitly provided don't try to read directly
         if (!options.usingDefaultClassPath || !file.exists()) None
-        else Some(VirtualDirectory.real(absPath.getParent()) -> absPath.getFileName())
+        else
+          Some(
+            VirtualDirectory.real(absPath.getParent()) -> absPath.getFileName()
+          )
       }
 
       for {
         fileName <- options.classNames
         path = Paths.get(fileName).normalize()
-        (directory, dirPath)  <-
+        (directory, dirPath) <-
           tryReadFromPath(path)
             .orElse(findInClasspathAndRead(cp, path))
             .orElse(fail(s"Not found file with name `${fileName}`"))

@@ -230,7 +230,9 @@ class ConfigConverterTest extends AnyFlatSpec {
       fail(_),
       { case (positive, negative) =>
         assert(positive.multithreadingSupport != negative.multithreadingSupport)
-        assert(positive.sourceLevelDebuggingConfig.enabled != negative.sourceLevelDebuggingConfig.enabled)
+        assert(
+          positive.sourceLevelDebuggingConfig.enabled != negative.sourceLevelDebuggingConfig.enabled
+        )
       }
     )
   }
