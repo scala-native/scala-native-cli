@@ -114,7 +114,7 @@ object ScalaNativeP {
             val found = dir.files
               .find(virtualDirPathMatches(_, path))
             if (found.isEmpty) findInClasspathAndRead(tail, path)
-            else found.map(VirtualDirectory.real(_) -> path)
+            else Some(dir -> path)
           case _ => None
         }
       }
@@ -125,9 +125,9 @@ object ScalaNativeP {
         // When classpath is explicitly provided don't try to read directly
         if (!options.usingDefaultClassPath || !file.exists()) None
         else
-          Some(
+          util.Try(
             VirtualDirectory.real(absPath.getParent()) -> absPath.getFileName()
-          )
+          ).toOption
       }
 
       for {
