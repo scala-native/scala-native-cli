@@ -125,9 +125,9 @@ object ScalaNativeP {
         // When classpath is explicitly provided don't try to read directly
         if (!options.usingDefaultClassPath || !file.exists()) None
         else
-          util.Try(
+          Some(
             VirtualDirectory.real(absPath.getParent()) -> absPath.getFileName()
-          ).toOption
+          )
       }
 
       for {
