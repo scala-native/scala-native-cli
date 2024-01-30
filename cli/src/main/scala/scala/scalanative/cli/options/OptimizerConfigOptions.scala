@@ -4,6 +4,7 @@ import scopt.OptionParser
 
 case class OptimizerConfigOptions(
     maxInlineDepth: Option[Int] = None,
+    maxCalleeSize: Option[Int] = None,
     maxCallerSize: Option[Int] = None,
     maxInlineSize: Option[Int] = None
 )
@@ -26,6 +27,13 @@ object OptimizerConfigOptions {
       .action((x, c) => update(c)(_.copy(maxCallerSize = Some(x))))
       .text(
         "Maximal size (number of instructions) of the caller method which can accept inlines."
+      )
+    parser
+      .opt[Int]("max-callee-size")
+      .optional()
+      .action((x, c) => update(c)(_.copy(maxCalleeSize = Some(x))))
+      .text(
+        "Maximal size (number of instructions) of the method to be inlined."
       )
     parser
       .opt[Int]("max-inline-size")

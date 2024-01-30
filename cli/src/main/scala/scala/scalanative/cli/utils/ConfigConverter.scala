@@ -112,8 +112,9 @@ object ConfigConverter {
     val c0 = OptimizerConfig.empty
     val c1 = options.maxInlineDepth.foldLeft(c0)(_.withMaxInlineDepth(_))
     val c2 = options.maxCallerSize.foldLeft(c1)(_.withMaxCallerSize(_))
-    val c3 = options.maxInlineSize.foldLeft(c2)(_.withMaxInlineSize(_))
-    c3
+    val c3 = options.maxCalleeSize.foldLeft(c2)(_.withMaxCalleeSize(_))
+    val c4 = options.maxInlineSize.foldLeft(c3)(_.withSmallFunctionSize(_))
+    c4
   }
 
   private def generateConfig(
