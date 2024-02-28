@@ -77,7 +77,6 @@ object ScalaNativeLd {
         case Right(buildOptions) =>
           val outpath = Paths.get(options.config.outpath)
           val build = Scope { implicit scope =>
-            println(buildOptions.config)
             Build
               .build(buildOptions.config)
               .map(
