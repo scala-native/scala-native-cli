@@ -1,9 +1,10 @@
-val crossScalaVersions212 = (14 to 18).map("2.12." + _)
-val crossScalaVersions213 = (8 to 12).map("2.13." + _)
+val crossScalaVersions212 = (14 to 19).map("2.12." + _)
+val crossScalaVersions213 = (8 to 13).map("2.13." + _)
 val crossScalaVersions3 =
   (2 to 3).map("3.1." + _) ++
     (0 to 2).map("3.2." + _) ++
-    (0 to 1).map("3.3." + _)
+    (0 to 2).map("3.3." + _) ++
+    (0 to 0).map("3.4." + _)
 
 val scala2_12 = crossScalaVersions212.last
 val scala2_13 = crossScalaVersions213.last

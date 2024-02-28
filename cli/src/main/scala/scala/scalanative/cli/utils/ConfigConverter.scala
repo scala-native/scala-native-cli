@@ -101,8 +101,9 @@ object ConfigConverter {
       .withOptimizerConfig(generateOptimizerConfig(options.optimizerConifg))
       .withBaseName(baseName)
       .withMultithreadingSupport(options.nativeConfig.multithreadingSupport)
+      .withSemanticsConfig(generateSemanticsConfig(options.semanticsConfig))
       .withSourceLevelDebuggingConfig(
-        _.enabled(options.nativeConfig.debugMetadata)
+        generateSourceLevelDebuggingConfig(options.sourceLevelDebuggingConfig)
       )
   }
 
@@ -115,6 +116,29 @@ object ConfigConverter {
     val c3 = options.maxCalleeSize.foldLeft(c2)(_.withMaxCalleeSize(_))
     val c4 = options.maxInlineSize.foldLeft(c3)(_.withSmallFunctionSize(_))
     c4
+  }
+
+  private def generateSemanticsConfig(
+      options: SemanticsConfigOptions
+  ): SemanticsConfig = {
+    val c0 = SemanticsConfig.default
+    val c1 =
+      options.finalFields.map(_.convert).foldLeft(c0)(_.withFinalFields(_))
+    c1
+  }
+
+  private def generateSourceLevelDebuggingConfig(
+      options: SourceLevelDebuggingConfigOptions
+  ): SourceLevelDebuggingConfig = {
+    val c0 = SourceLevelDebuggingConfig.disabled.withCustomSourceRoots(
+      options.customSourceRoots
+    )
+    val c1 = options.enabled.foldLeft(c0)(_.enabled(_))
+    val c2 = options.genFunctionSourcePositions.foldLeft(c1)(
+      _.generateFunctionSourcePositions(_)
+    )
+    val c3 = options.genLocalVariables.foldLeft(c2)(_.generateLocalVariables(_))
+    c3
   }
 
   private def generateConfig(
