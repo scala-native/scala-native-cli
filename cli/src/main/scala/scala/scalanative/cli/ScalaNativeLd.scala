@@ -24,6 +24,8 @@ object ScalaNativeLd {
       ConfigOptions.set(this)
       NativeConfigOptions.set(this)
       OptimizerConfigOptions.set(this)
+      SemanticsConfigOptions.set(this)
+      SourceLevelDebuggingConfigOptions.set(this)
 
       note("Logger options:")
       opt[Unit]("verbose")
@@ -75,6 +77,7 @@ object ScalaNativeLd {
         case Right(buildOptions) =>
           val outpath = Paths.get(options.config.outpath)
           val build = Scope { implicit scope =>
+            println(buildOptions.config)
             Build
               .build(buildOptions.config)
               .map(

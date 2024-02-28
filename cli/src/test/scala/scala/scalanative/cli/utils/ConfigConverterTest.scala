@@ -206,7 +206,7 @@ class ConfigConverterTest extends AnyFlatSpec {
       config = dummyConfigOptions,
       nativeConfig = NativeConfigOptions(
         multithreadingSupport = true,
-        debugMetadata = true
+        incrementalCompilation = true
       )
     )
     val optionsNegative = LinkerOptions(
@@ -214,7 +214,7 @@ class ConfigConverterTest extends AnyFlatSpec {
       config = dummyConfigOptions,
       nativeConfig = NativeConfigOptions(
         multithreadingSupport = false,
-        debugMetadata = false
+        incrementalCompilation = false
       )
     )
     val parsed = for {
@@ -231,7 +231,7 @@ class ConfigConverterTest extends AnyFlatSpec {
       { case (positive, negative) =>
         assert(positive.multithreadingSupport != negative.multithreadingSupport)
         assert(
-          positive.sourceLevelDebuggingConfig.enabled != negative.sourceLevelDebuggingConfig.enabled
+          positive.useIncrementalCompilation != negative.useIncrementalCompilation
         )
       }
     )

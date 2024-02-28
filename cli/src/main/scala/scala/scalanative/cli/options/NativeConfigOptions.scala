@@ -17,7 +17,6 @@ case class NativeConfigOptions(
     noOptimize: Boolean = false,
     embedResources: Boolean = false,
     multithreadingSupport: Boolean = true,
-    debugMetadata: Boolean = false,
     incrementalCompilation: Boolean = false,
     baseName: Option[String] = None,
     ltp: List[String] = List.empty,
@@ -121,16 +120,6 @@ object NativeConfigOptions {
       )
       .text(
         "Should the target enable multihreading support for builds? [true]"
-      )
-    parser
-      .opt[Boolean]("debug-info")
-      .abbr("-g")
-      .optional()
-      .action((x, c) =>
-        c.copy(nativeConfig = c.nativeConfig.copy(debugMetadata = x))
-      )
-      .text(
-        "Should the build include additional debug information? These can be used for better stacktraces or debuging support [false]"
       )
     parser
       .opt[String]("base-name")

@@ -5,5 +5,8 @@ case class LinkerOptions(
     config: ConfigOptions = ConfigOptions(),
     nativeConfig: NativeConfigOptions = NativeConfigOptions(),
     optimizerConifg: OptimizerConfigOptions = OptimizerConfigOptions(),
+    semanticsConfig: SemanticsConfigOptions = SemanticsConfigOptions(),
+    sourceLevelDebuggingConfig: SourceLevelDebuggingConfigOptions =
+      SourceLevelDebuggingConfigOptions(),
     verbose: Int = 0
 )
