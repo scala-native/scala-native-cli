@@ -1,3 +1,8 @@
+
+val ScalaNativeVersion = "0.5.0-RC1"
+// Update during release procedure to provide access to staged, but not published artifacts
+val StagingRepoIds = (1117 to 1119)
+
 val crossScalaVersions212 = (14 to 19).map("2.12." + _)
 val crossScalaVersions213 = (8 to 13).map("2.13." + _)
 val crossScalaVersions3 =
@@ -70,7 +75,7 @@ val cliAssemblyJarName = settingKey[String]("Name of created assembly jar")
 inThisBuild(
   Def.settings(
     organization := "org.scala-native",
-    scalaNativeVersion := "0.5.0-SNAPSHOT",
+    scalaNativeVersion := ScalaNativeVersion,
     version := scalaNativeVersion.value,
     scalaVersion := scala3PublishVersion,
     crossScalaVersions := publishScalaVersions,
@@ -89,6 +94,8 @@ inThisBuild(
           Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
       )
     ),
+    // Used during the releases 
+    resolvers ++= StagingRepoIds.flatMap(id => Resolver.sonatypeOssRepos(s"orgscala-native-$id")),
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     resolvers += Resolver.mavenCentral,
     resolvers += Resolver.defaultLocal
