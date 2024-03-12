@@ -1,4 +1,3 @@
-
 val ScalaNativeVersion = "0.5.0-RC2"
 // Update during release procedure to provide access to staged, but not published artifacts
 val StagingRepoIds = (1127 to 1129)
@@ -38,12 +37,15 @@ def scalaStdlibForBinaryVersion(
   def artifact(module: String, binV: String, version: String = nativeVersion) =
     organization % s"${module}_native${nativeBinaryVersion}_$binV" % version
 
+  def crossScalaLibVersion(scalaVersion: String) =
+    s"$scalaVersion+$nativeVersion"
   def scalalibVersion(scalaBinVersion: String): String = {
     val scalaVersion = scalaReleasesForBinaryVersion(scalaBinVersion).last
-    s"$scalaVersion+$nativeVersion"
+    crossScalaLibVersion(scalaVersion)
   }
   def scalalib(binV: String) = artifact("scalalib", binV, scalalibVersion(binV))
-  val scala3lib = artifact("scala3lib", "3", scalalibVersion("3"))
+  val scala3lib =
+    artifact("scala3lib", "3", crossScalaLibVersion(scala3PublishVersion))
   val crossRuntimeLibraries = List(
     "nativelib",
     "clib",
@@ -95,7 +97,7 @@ inThisBuild(
           Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
       )
     ),
-    // Used during the releases 
+    // Used during the releases
     resolvers ++= StagingRepoNames.flatMap(Resolver.sonatypeOssRepos(_)),
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     resolvers += Resolver.mavenCentral,
@@ -151,7 +153,8 @@ lazy val cliScriptedTests = project
         "-Dscala.version=" + (cli / scalaVersion).value,
         "-Dscala-native-cli=" + cliPath,
         "-Dscala-native-cli-pack=" + packDir,
-        "-Dscalanative.build.staging.resolvers=" + StagingRepoNames.mkString(",")
+        "-Dscalanative.build.staging.resolvers=" + StagingRepoNames
+          .mkString(",")
       )
     },
     scriptedBufferLog := false,
