@@ -55,8 +55,7 @@ jobs:
 
       - name: Test
         run: >
-          sbt 'set cli/scalaVersion := "${{matrix.scala}}"'
-          ++ ${{matrix.scala}}
+          sbt ++${{matrix.scala}}
           cli/test
           cliScriptedTests/scripted
         shell: bash
