@@ -205,7 +205,7 @@ class ConfigConverterTest extends AnyFlatSpec {
       classpath = dummyArguments.toList,
       config = dummyConfigOptions,
       nativeConfig = NativeConfigOptions(
-        multithreadingSupport = true,
+        multithreading = Some(true),
         incrementalCompilation = true
       )
     )
@@ -213,7 +213,7 @@ class ConfigConverterTest extends AnyFlatSpec {
       classpath = dummyArguments.toList,
       config = dummyConfigOptions,
       nativeConfig = NativeConfigOptions(
-        multithreadingSupport = false,
+        multithreading = Some(false),
         incrementalCompilation = false
       )
     )
@@ -229,7 +229,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     parsed.fold(
       fail(_),
       { case (positive, negative) =>
-        assert(positive.multithreadingSupport != negative.multithreadingSupport)
+        assert(positive.multithreading != negative.multithreading)
         assert(
           positive.useIncrementalCompilation != negative.useIncrementalCompilation
         )

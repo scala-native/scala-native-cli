@@ -16,7 +16,7 @@ case class NativeConfigOptions(
     dump: Boolean = false,
     noOptimize: Boolean = false,
     embedResources: Boolean = false,
-    multithreadingSupport: Boolean = true,
+    multithreading: Option[Boolean] = None,
     incrementalCompilation: Boolean = false,
     baseName: Option[String] = None,
     ltp: List[String] = List.empty,
@@ -116,7 +116,7 @@ object NativeConfigOptions {
       .abbr("-mt")
       .optional()
       .action((x, c) =>
-        c.copy(nativeConfig = c.nativeConfig.copy(multithreadingSupport = x))
+        c.copy(nativeConfig = c.nativeConfig.copy(multithreading = Some(x)))
       )
       .text(
         "Should the target enable multihreading support for builds? [true]"
