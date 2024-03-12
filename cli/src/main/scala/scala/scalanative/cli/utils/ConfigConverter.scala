@@ -100,7 +100,7 @@ object ConfigConverter {
       .withIncrementalCompilation(options.nativeConfig.incrementalCompilation)
       .withOptimizerConfig(generateOptimizerConfig(options.optimizerConifg))
       .withBaseName(baseName)
-      .withMultithreadingSupport(options.nativeConfig.multithreadingSupport)
+      .withMultithreading(options.nativeConfig.multithreadingSupport)
       .withSemanticsConfig(generateSemanticsConfig(options.semanticsConfig))
       .withSourceLevelDebuggingConfig(
         generateSourceLevelDebuggingConfig(options.sourceLevelDebuggingConfig)

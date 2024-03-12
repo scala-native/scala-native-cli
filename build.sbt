@@ -1,14 +1,15 @@
 
-val ScalaNativeVersion = "0.5.0-SNAPSHOT"
+val ScalaNativeVersion = "0.5.0-RC2"
 // Update during release procedure to provide access to staged, but not published artifacts
-val StagingRepoIds = Nil
+val StagingRepoIds = (1127 to 1129)
+val StagingRepoNames = StagingRepoIds.map(id => s"orgscala-native-$id").toSeq
 
 val crossScalaVersions212 = (14 to 19).map("2.12." + _)
 val crossScalaVersions213 = (8 to 13).map("2.13." + _)
 val crossScalaVersions3 =
   (2 to 3).map("3.1." + _) ++
     (0 to 2).map("3.2." + _) ++
-    (0 to 2).map("3.3." + _) ++
+    (0 to 3).map("3.3." + _) ++
     (0 to 0).map("3.4." + _)
 
 val scala2_12 = crossScalaVersions212.last
@@ -95,7 +96,7 @@ inThisBuild(
       )
     ),
     // Used during the releases 
-    resolvers ++= StagingRepoIds.flatMap(id => Resolver.sonatypeOssRepos(s"orgscala-native-$id")),
+    resolvers ++= StagingRepoNames.flatMap(Resolver.sonatypeOssRepos(_)),
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     resolvers += Resolver.mavenCentral,
     resolvers += Resolver.defaultLocal
@@ -149,7 +150,8 @@ lazy val cliScriptedTests = project
         "-Dplugin.version=" + (cli / scalaNativeVersion).value,
         "-Dscala.version=" + (cli / scalaVersion).value,
         "-Dscala-native-cli=" + cliPath,
-        "-Dscala-native-cli-pack=" + packDir
+        "-Dscala-native-cli-pack=" + packDir,
+        "-Dscalanative.build.staging.resolvers=" + StagingRepoNames.mkString(",")
       )
     },
     scriptedBufferLog := false,
