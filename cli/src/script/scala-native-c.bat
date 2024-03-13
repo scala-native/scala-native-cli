@@ -1,4 +1,4 @@
-@ECHO OFF
+@ECHO ON
 SetLocal
 
 set SCALA_BIN_VER=@SCALA_BIN_VER@
