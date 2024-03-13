@@ -36,4 +36,4 @@ if "%SCALA_BIN_VER%" == "3" (
   set NATIVELIB=%NATIVELIB%;%BASE%\scalalib_native%SCALANATIVE_BIN_VER%_%SCALA_BIN_VER%-%SCALA_VER%+%SCALANATIVE_VER%.jar
 )
 
-scalac "--class-path=%NATIVELIB%" "-Xplugin:%PLUGIN%" "%*"
+scalac -classpath "%NATIVELIB%" -Xplugin:%PLUGIN% "%*"
