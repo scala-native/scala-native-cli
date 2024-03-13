@@ -69,12 +69,12 @@ runScript := {
 
   val script = Paths.get(cliPackDir, "bin", scriptName).toString
   val args = rawArgs.map {
-    case "@NATIVE_LIB@" =>
-      Paths
+    case "@NATIVE_LIB@" | "\"@NATIVE_LIB@\"" =>
+      "\"" + Paths
         .get(cliPackDir, "lib")
         .toFile()
         .listFiles()
-        .mkString(File.pathSeparator)
+        .mkString(File.pathSeparator) + "\""
     case arg => arg
   }
   val proc =

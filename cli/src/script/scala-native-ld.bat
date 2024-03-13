@@ -29,4 +29,4 @@ if "%SCALA_BIN_VER%" == "3" (
   set NATIVELIB=%NATIVELIB% %BASE%\scalalib_native%SCALANATIVE_BIN_VER%_%SCALA_BIN_VER%-%SCALA_VER%+%SCALANATIVE_VER%.jar
 )
 
-scala -classpath %CLILIB% scala.scalanative.cli.ScalaNativeLd %* %NATIVELIB%
+scala -classpath "%CLILIB%" scala.scalanative.cli.ScalaNativeLd %* %NATIVELIB%
