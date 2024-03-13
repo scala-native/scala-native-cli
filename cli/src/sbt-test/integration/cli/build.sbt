@@ -1,4 +1,9 @@
 resolvers ++= Resolver.sonatypeOssRepos("snapshots")
+resolvers ++= sys.props
+  .get("scalanative.build.staging.resolvers")
+  .toList
+  .flatMap(_.split(","))
+  .flatMap(Resolver.sonatypeOssRepos(_))
 enablePlugins(ScalaNativePlugin)
 
 import sbt._

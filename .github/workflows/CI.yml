@@ -55,7 +55,7 @@ jobs:
 
       - name: Test
         run: >
-          sbt 'set cli/scalaVersion := "${{matrix.scala}}"'
-          +cli/test
-          +cliScriptedTests/scripted
+          sbt ++${{matrix.scala}}
+          cli/test
+          "cliScriptedTests/scripted ${{ startsWith(matrix.OS, 'windows') && 'integration/cli' || ''}}"
         shell: bash
