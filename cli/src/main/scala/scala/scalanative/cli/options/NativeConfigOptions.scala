@@ -13,9 +13,12 @@ case class NativeConfigOptions(
     linkStubs: Boolean = false,
     check: Boolean = false,
     checkFatalWarnings: Boolean = false,
+    checkFeatures: Option[Boolean] = None,
     dump: Boolean = false,
     noOptimize: Boolean = false,
     embedResources: Boolean = false,
+    resourceIncludePatterns: List[String] = Nil,
+    resourceExcludePatterns: List[String] = Nil,
     multithreading: Option[Boolean] = None,
     incrementalCompilation: Boolean = false,
     baseName: Option[String] = None,
@@ -24,7 +27,9 @@ case class NativeConfigOptions(
     compileOption: List[String] = List.empty,
     targetTriple: Option[String] = None,
     clang: Option[String] = None,
-    clangPP: Option[String] = None
+    clangPP: Option[String] = None,
+    serviceProviders: List[(String, String)] = Nil,
+    sanitizer: Option[String] = None
 )
 
 object NativeConfigOptions {
@@ -82,6 +87,15 @@ object NativeConfigOptions {
       )
       .text("Shall linker NIR check treat warnings as errors? [false]")
     parser
+      .opt[Boolean]("check-features")
+      .optional()
+      .action((x, c) =>
+        c.copy(nativeConfig = c.nativeConfig.copy(checkFeatures = Some(x)))
+      )
+      .text(
+        "Shall build fail if it detects usage of unsupported feature on given platform? [true]"
+      )
+    parser
       .opt[Unit]("dump")
       .optional()
       .action((x, c) => c.copy(nativeConfig = c.nativeConfig.copy(dump = true)))
@@ -93,6 +107,34 @@ object NativeConfigOptions {
         c.copy(nativeConfig = c.nativeConfig.copy(noOptimize = true))
       )
       .text("Should the resulting NIR code be not optimized? [false]")
+    parser
+      .opt[String]("embed-resources-include")
+      .optional()
+      .unbounded()
+      .action((x, c) =>
+        c.copy(nativeConfig =
+          c.nativeConfig.copy(resourceIncludePatterns =
+            x :: c.nativeConfig.resourceIncludePatterns
+          )
+        )
+      )
+      .text(
+        "Add glob pattern for resource files that should be embeded in the binary [**]"
+      )
+    parser
+      .opt[String]("embed-resources-exclude")
+      .optional()
+      .unbounded()
+      .action((x, c) =>
+        c.copy(nativeConfig =
+          c.nativeConfig.copy(resourceExcludePatterns =
+            x :: c.nativeConfig.resourceExcludePatterns
+          )
+        )
+      )
+      .text(
+        "Add glob pattern for resource files that should not be embeded in the binary"
+      )
     parser
       .opt[Unit]("embed-resources")
       .optional()
@@ -137,6 +179,7 @@ object NativeConfigOptions {
       .opt[String]("ltp")
       .valueName("<keystring=value>")
       .optional()
+      .unbounded()
       .action((x, c) =>
         c.copy(nativeConfig =
           c.nativeConfig.copy(ltp = c.nativeConfig.ltp :+ x)
@@ -144,6 +187,29 @@ object NativeConfigOptions {
       )
       .text(
         "User defined properties resolved at link-time. Multiple can be defined. Example: \"isCli=true\""
+      )
+    parser
+      .opt[String]("service-providers")
+      .valueName("<serviceName:implementationName>")
+      .optional()
+      .unbounded()
+      .action((x, c) =>
+        x.split(':') match {
+          case Array(serviceName, serviceImplementation) =>
+            c.copy(nativeConfig =
+              c.nativeConfig.copy(serviceProviders =
+                c.nativeConfig.serviceProviders :+ (serviceName, serviceImplementation)
+              )
+            )
+          case _ =>
+            parser.reportWarning(
+              "Invalid format for 'service-providers', expected <serviceName:implementationName>"
+            )
+            c
+        }
+      )
+      .text(
+        "Explicitly enabled service providers that should be avaiable in the executable"
       )
     parser
       .opt[String]("linking-option")
@@ -193,6 +259,23 @@ object NativeConfigOptions {
       .action((x, c) =>
         c.copy(nativeConfig = c.nativeConfig.copy(clangPP = Some(x)))
       )
+      .text(
+        "Path to the `clang++` executable. Internally discovered if not specified."
+      )
+    parser
+      .opt[String]("sanitizer")
+      .optional()
+      .action { (x, c) =>
+        val supportedSanitizers = Seq("thread", "address", "undefined")
+        if (supportedSanitizers.contains(x))
+          c.copy(nativeConfig = c.nativeConfig.copy(sanitizer = Some(x)))
+        else {
+          parser.reportWarning(
+            s"Unsupported sanitizer type '$x', allowed values: ${supportedSanitizers.mkString(", ")}"
+          )
+          c
+        }
+      }
       .text(
         "Path to the `clang++` executable. Internally discovered if not specified."
       )

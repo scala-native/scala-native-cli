@@ -4,7 +4,8 @@ import scopt.OptionParser
 import scala.scalanative.build
 
 case class SemanticsConfigOptions(
-    finalFields: Option[JVMMemoryModelCompliance] = None
+    finalFields: Option[JVMMemoryModelCompliance] = None,
+    strictExternCalls: Option[Boolean] = None
 )
 
 sealed abstract class JVMMemoryModelCompliance {
@@ -40,6 +41,15 @@ object SemanticsConfigOptions {
       .valueName("<final-fields-semantics> (none, relaxed, or stricts)")
       .optional()
       .action((x, c) => update(c)(_.copy(finalFields = Some(x))))
-      .text("Maximal number of allowed nested inlines.")
+      .text(
+        "JVM memory model compliance for final, either 'none' (no special handling), 'relaxed' (default, synchronization of annotated fiedls), `strict` (synchronization of all final fields)"
+      )
+    parser
+      .opt[Boolean]("strict-extern-call-semantics")
+      .optional()
+      .action((x, c) => update(c)(_.copy(strictExternCalls = Some(x))))
+      .text(
+        "Should runtime notify GC when entering unmanaged (foreign, native) code. When enabled every extern call would notify GC, otherwise (default) only annotated blocking methods notify GC."
+      )
   }
 }

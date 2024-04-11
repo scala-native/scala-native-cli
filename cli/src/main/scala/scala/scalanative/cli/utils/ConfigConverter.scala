@@ -9,7 +9,7 @@ import java.io.File
 
 case class BuildOptions(
     config: Config,
-    outpath: Path
+    outpath: Option[Path]
 )
 
 object ConfigConverter {
@@ -32,7 +32,7 @@ object ConfigConverter {
       )
     } else {
       generateConfig(options, main, classpath).flatMap(config =>
-        Try(Paths.get(options.config.outpath)).toEither.map(outpath =>
+        Try(options.config.outpath.map(Paths.get(_))).toEither.map(outpath =>
           BuildOptions(config, outpath)
         )
       )
@@ -54,24 +54,27 @@ object ConfigConverter {
       options.nativeConfig.baseName match {
         case Some(name) => Right(name)
         case _ =>
-          Paths
-            .get(
-              options.config.outpath
-                .replace('/', File.separatorChar)
+          options.config.outpath
+            .map(
+              _.replace('/', File.separatorChar)
                 .replace('\\', File.separatorChar)
             )
-            .getFileName()
-            .toString()
-            .split('.')
-            .headOption match {
-            case Some(name) => Right(name)
-            case None =>
-              Left(
-                new IllegalArgumentException(
-                  s"Invalid output path, failed to resolve base name of output file for path '${options.config.outpath}'"
-                )
-              )
-          }
+            .fold[Either[Throwable, String]](Right("scala-native")) {
+              Paths
+                .get(_)
+                .getFileName()
+                .toString()
+                .split('.')
+                .headOption match {
+                case Some(name) => Right(name)
+                case None =>
+                  Left(
+                    new IllegalArgumentException(
+                      s"Invalid output path, failed to resolve base name of output file for path '${options.config.outpath}'"
+                    )
+                  )
+              }
+            }
       }
     for {
       clang <- toPathOrDiscover(options.nativeConfig.clang)(Discover.clang())
@@ -80,16 +83,32 @@ object ConfigConverter {
       )
       ltp <- LinktimePropertyParser.parseAll(options.nativeConfig.ltp)
       baseName <- resolveBaseName
-    } yield NativeConfig.empty
+      default = NativeConfig.empty
+    } yield default
       .withMode(options.nativeConfig.mode)
       .withLTO(options.nativeConfig.lto)
       .withGC(options.nativeConfig.gc)
       .withLinkStubs(options.nativeConfig.linkStubs)
       .withCheck(options.nativeConfig.check)
       .withCheckFatalWarnings(options.nativeConfig.checkFatalWarnings)
+      .withCheckFeatures(
+        options.nativeConfig.checkFeatures.getOrElse(default.checkFeatures)
+      )
       .withDump(options.nativeConfig.dump)
       .withOptimize(!options.nativeConfig.noOptimize)
       .withEmbedResources(options.nativeConfig.embedResources)
+      .withResourceIncludePatterns(
+        options.nativeConfig.resourceIncludePatterns match {
+          case Nil      => default.resourceIncludePatterns
+          case patterns => patterns
+        }
+      )
+      .withResourceExcludePatterns(
+        options.nativeConfig.resourceExcludePatterns match {
+          case Nil      => default.resourceExcludePatterns
+          case patterns => patterns
+        }
+      )
       .withTargetTriple(options.nativeConfig.targetTriple)
       .withClang(clang)
       .withClangPP(clangPP)
@@ -105,7 +124,21 @@ object ConfigConverter {
       .withSourceLevelDebuggingConfig(
         generateSourceLevelDebuggingConfig(options.sourceLevelDebuggingConfig)
       )
+      .withServiceProviders(
+        options.nativeConfig.serviceProviders.groupBy(_._1).map {
+          case (key, values) => (key, values.map(_._2))
+        }
+      )
+      .withSanitizer(
+        options.nativeConfig.sanitizer.flatMap(sanitizerFromString)
+      )
   }
+
+  private def sanitizerFromString(v: String): Option[Sanitizer] = Seq(
+    Sanitizer.ThreadSanitizer,
+    Sanitizer.AddressSanitizer,
+    Sanitizer.UndefinedBehaviourSanitizer
+  ).find(_.name == v)
 
   private def generateOptimizerConfig(
       options: OptimizerConfigOptions
@@ -124,7 +157,9 @@ object ConfigConverter {
     val c0 = SemanticsConfig.default
     val c1 =
       options.finalFields.map(_.convert).foldLeft(c0)(_.withFinalFields(_))
-    c1
+    val c2 =
+      options.strictExternCalls.foldLeft(c1)(_.withStrictExternCallSemantics(_))
+    c2
   }
 
   private def generateSourceLevelDebuggingConfig(

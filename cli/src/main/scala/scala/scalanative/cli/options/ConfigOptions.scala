@@ -4,7 +4,7 @@ import scopt.OptionParser
 
 case class ConfigOptions(
     main: Option[String] = None,
-    outpath: String = "scala-native-out",
+    outpath: Option[String] = None,
     workdir: String = "."
 )
 
@@ -21,8 +21,8 @@ object ConfigOptions {
       .opt[String]('o', "outpath")
       .valueName("<output-path>")
       .optional()
-      .action((x, c) => c.copy(config = c.config.copy(outpath = x)))
-      .text("Path of the resulting output binary. [./scala-native-out]")
+      .action((x, c) => c.copy(config = c.config.copy(outpath = Some(x))))
+      .text("Path of the resulting output binary.")
     parser
       .opt[String]("workdir")
       .valueName("<path-to-directory>")
