@@ -75,18 +75,19 @@ object ScalaNativeLd {
           System.err.println(thrown.getMessage())
           sys.exit(1)
         case Right(buildOptions) =>
-          val outpath = Paths.get(options.config.outpath)
           val build = Scope { implicit scope =>
             Build
               .build(buildOptions.config)
-              .map(
-                Files.copy(
-                  _,
-                  outpath,
-                  StandardCopyOption.REPLACE_EXISTING,
-                  StandardCopyOption.COPY_ATTRIBUTES
-                )
-              )
+              .map { outputFile =>
+                options.config.outpath.map(Paths.get(_)).foreach { outpath =>
+                  Files.copy(
+                    outputFile,
+                    outpath,
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.COPY_ATTRIBUTES
+                  )
+                }
+              }
           }
           Await.result(build, Duration.Inf)
 

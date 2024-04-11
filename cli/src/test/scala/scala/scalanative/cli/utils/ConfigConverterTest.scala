@@ -250,7 +250,7 @@ class ConfigConverterTest extends AnyFlatSpec {
     ) {
       val options = LinkerOptions(
         classpath = dummyArguments.toList,
-        config = dummyConfigOptions.copy(outpath = path),
+        config = dummyConfigOptions.copy(outpath = Some(path)),
         nativeConfig = NativeConfigOptions(baseName = None)
       )
       val resolved = ConfigConverter
@@ -263,7 +263,7 @@ class ConfigConverterTest extends AnyFlatSpec {
   it should "prioritize baseName over outpath" in {
     val options = LinkerOptions(
       classpath = dummyArguments.toList,
-      config = dummyConfigOptions.copy(outpath = "my-bin.exe"),
+      config = dummyConfigOptions.copy(outpath = Some("my-bin.exe")),
       nativeConfig = NativeConfigOptions(baseName = Some("my-app"))
     )
     val resolved = ConfigConverter
