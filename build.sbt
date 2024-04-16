@@ -1,6 +1,6 @@
-val ScalaNativeVersion = "0.5.1"
+val ScalaNativeVersion = "0.5.2-SNAPSHOT"
 // Update during release procedure to provide access to staged, but not published artifacts
-val StagingRepoIds = 1154 to 1156
+val StagingRepoIds = Nil
 val StagingRepoNames = StagingRepoIds.map(id => s"orgscala-native-$id").toSeq
 
 val crossScalaVersions212 = (14 to 19).map("2.12." + _)
