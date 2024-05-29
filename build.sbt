@@ -9,7 +9,7 @@ val crossScalaVersions3 =
   (2 to 3).map("3.1." + _) ++
     (0 to 2).map("3.2." + _) ++
     (0 to 3).map("3.3." + _) ++
-    (0 to 2).map("3.4." + _) ++ 
+    (0 to 2).map("3.4." + _) ++
     Seq("3.5.0-RC1")
 
 val scala2_12 = crossScalaVersions212.last
