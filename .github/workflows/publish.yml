@@ -42,7 +42,7 @@ jobs:
           ./scripts/dist.sh $version
 
       - name: Archive CLI artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: scala-native-cli
           path: release/
