@@ -30,10 +30,10 @@ jobs:
 
       - name: Publish release
         env:
-          MAVEN_USER: "${{ secrets.SONATYPE_USER }}"
-          MAVEN_PASSWORD: "${{ secrets.SONATYPE_PASSWORD }}"
+          SONATYPE_USER: "${{ secrets.SONATYPE_USER }}"
+          SONATYPE_PASSWORD: "${{ secrets.SONATYPE_PASSWORD }}"
           PGP_PASSPHRASE: "${{ secrets.PGP_PASSWORD }}"
-        run: sbt "clean;+cli/cliPack; +cli/publishSigned"
+        run: sbt "clean;+cli/cliPack; +cli/publishSigned; sonaUpload"
 
       - name: Create release artifacts
         run: |
