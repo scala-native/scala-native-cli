@@ -22,11 +22,6 @@ scalaVersion := {
     )
   else scalaVersion
 }
-resolvers ++= sys.props
-  .get("scalanative.build.staging.resolvers")
-  .toList
-  .flatMap(_.split(","))
-  .flatMap(Resolver.sonatypeOssRepos(_))
 
 runScript := {
   val scriptName +: rawArgs = spaceDelimited("<arg>").parsed.toSeq

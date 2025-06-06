@@ -1,22 +1,23 @@
 val ScalaNativeVersion = "0.5.8-SNAPSHOT"
-// Update during release procedure to provide access to staged, but not published artifacts
-val StagingRepoIds = Nil
-val StagingRepoNames = StagingRepoIds.map(id => s"orgscala-native-$id").toSeq
 
 val crossScalaVersions212 = (14 to 20).map("2.12." + _)
 val crossScalaVersions213 = (8 to 16).map("2.13." + _)
 val crossScalaVersions3 =
   (2 to 3).map("3.1." + _) ++
     (0 to 2).map("3.2." + _) ++
-    (0 to 4).map("3.3." + _) ++
+    (0 to 6).map("3.3." + _) ++
     (0 to 3).map("3.4." + _) ++
     (0 to 2).map("3.5." + _) ++
-    (2 to 3).map("3.6." + _)
+    (2 to 4).map("3.6." + _) ++
+    (0 to 1).map("3.7." + _) ++
+    Nil
 
 val scala2_12 = crossScalaVersions212.last
 val scala2_13 = crossScalaVersions213.last
 val scala3 = crossScalaVersions3.last
 val scala3PublishVersion = "3.1.3"
+
+sonatypePublishSettings
 
 val publishScalaVersions = Seq(scala2_12, scala2_13, scala3PublishVersion)
 
@@ -100,7 +101,7 @@ inThisBuild(
       )
     ),
     // Used during the releases
-    resolvers ++= StagingRepoNames.flatMap(Resolver.sonatypeOssRepos(_)),
+    resolvers += "Sonatype Central Deployments" at "https://central.sonatype.com/api/v1/publisher/deployments/download/",
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     resolvers += Resolver.mavenCentral,
     resolvers += Resolver.defaultLocal
@@ -154,9 +155,7 @@ lazy val cliScriptedTests = project
         "-Dplugin.version=" + (cli / scalaNativeVersion).value,
         "-Dscala.version=" + (cli / scalaVersion).value,
         "-Dscala-native-cli=" + cliPath,
-        "-Dscala-native-cli-pack=" + packDir,
-        "-Dscalanative.build.staging.resolvers=" + StagingRepoNames
-          .mkString(",")
+        "-Dscala-native-cli-pack=" + packDir
       )
     },
     scriptedBufferLog := false,
@@ -306,6 +305,9 @@ lazy val cliPackSettings = Def.settings(
 lazy val publishSettings = Def.settings(
   Compile / publishArtifact := true,
   Test / publishArtifact := false,
+  sonatypePublishSettings
+)
+lazy val sonatypePublishSettings = Def.settings(
   publishMavenStyle := true,
   pomIncludeRepository := (_ => false),
   publishTo := {
@@ -319,7 +321,7 @@ lazy val publishSettings = Def.settings(
       user <- sys.env.get("SONATYPE_USER")
       password <- sys.env.get("SONATYPE_PASSWORD")
     } yield Credentials(
-      realm = "Sonatype Nexus Repository Manager",
+      realm = "",
       host = "central.sonatype.com",
       userName = user,
       passwd = password
