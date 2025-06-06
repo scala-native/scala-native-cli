@@ -1,4 +1,4 @@
-val ScalaNativeVersion = "0.5.8-SNAPSHOT"
+val ScalaNativeVersion = "0.5.8"
 
 val crossScalaVersions212 = (14 to 20).map("2.12." + _)
 val crossScalaVersions213 = (8 to 16).map("2.13." + _)
