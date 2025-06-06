@@ -9,8 +9,3 @@ if (pluginVersion == null)
 else {
   addSbtPlugin("org.scala-native" % "sbt-scala-native" % pluginVersion)
 }
-resolvers ++= sys.props
-  .get("scalanative.build.staging.resolvers")
-  .toList
-  .flatMap(_.split(","))
-  .flatMap(Resolver.sonatypeOssRepos(_))
