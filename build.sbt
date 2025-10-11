@@ -1,15 +1,20 @@
-val ScalaNativeVersion = "0.5.9-SNAPSHOT"
+import scala.util.Properties.envOrNone
+import scala.scalanative.nir.Proxy.nativeBinaryVersion
+
+val ScalaNativeVersion = envOrNone("CI_NATIVE_VERSION")
+  .filterNot(_.isEmpty)
+  .getOrElse("0.5.8")
 
 val crossScalaVersions212 = (14 to 20).map("2.12." + _)
-val crossScalaVersions213 = (8 to 16).map("2.13." + _)
+val crossScalaVersions213 = (8 to 17).map("2.13." + _)
 val crossScalaVersions3 =
   (2 to 3).map("3.1." + _) ++
     (0 to 2).map("3.2." + _) ++
-    (0 to 6).map("3.3." + _) ++
+    (0 to 7).map("3.3." + _) ++
     (0 to 3).map("3.4." + _) ++
     (0 to 2).map("3.5." + _) ++
     (2 to 4).map("3.6." + _) ++
-    (0 to 1).map("3.7." + _) ++
+    (0 to 3).map("3.7." + _) ++
     Nil
 
 val scala2_12 = crossScalaVersions212.last
@@ -100,9 +105,6 @@ inThisBuild(
           Some("scm:git:git@github.com:scala-native/scala-native-cli.git")
       )
     ),
-    // Used during the releases
-    resolvers += "Sonatype Central Deployments" at "https://central.sonatype.com/api/v1/publisher/deployments/download/",
-    resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     resolvers += Resolver.sonatypeCentralSnapshots,
     resolvers += Resolver.mavenCentral,
     resolvers += Resolver.defaultLocal
@@ -120,11 +122,10 @@ lazy val cli = project
     crossScalaVersions := publishScalaVersions,
     Compile / run / mainClass :=
       Some("scala.scalanative.cli.ScalaNativeLd"),
-    scalacOptions += "-Ywarn-unused:imports",
-    scalacOptions ++= CrossVersion.partialVersion(scalaVersion.value).collect {
-      case (2, _) => "-target:jvm-1.8"
-      case (3, _) => "-Xtarget:8"
-    },
+    scalacOptions ++= Seq(
+      "-release:8",
+      "-Ywarn-unused:imports"
+    ),
     libraryDependencies ++= Seq(
       "org.scala-native" %% "tools" % scalaNativeVersion.value,
       "com.github.scopt" %% "scopt" % "4.0.1",
@@ -169,13 +170,6 @@ lazy val cliScriptedTests = project
         .value
     }
   )
-
-def nativeBinaryVersion(version: String): String = {
-  val VersionPattern = raw"(\d+)\.(\d+)\.(\d+)(\-.*)?".r
-  val VersionPattern(major, minor, patch, milestone) = version
-  if (patch != null && milestone != null) version
-  else s"$major.$minor"
-}
 
 val nativeSourceExtensions = Set(".c", ".cpp", ".cxx", ".h", ".hpp", ".S")
 val DeduplicateOrRename = new sbtassembly.MergeStrategy {
@@ -230,7 +224,7 @@ lazy val cliPackSettings = Def.settings(
       val lm = {
         import sbt.librarymanagement.ivy._
         val ivyConfig = InlineIvyConfiguration()
-          .withResolvers(resolvers.value.toVector)
+          .withResolvers((ThisBuild / resolvers).value.toVector)
           .withLog(log)
         IvyDependencyResolution(ivyConfig)
       }
@@ -312,9 +306,7 @@ lazy val sonatypePublishSettings = Def.settings(
   publishMavenStyle := true,
   pomIncludeRepository := (_ => false),
   publishTo := {
-    val centralSnapshots =
-      "https://central.sonatype.com/repository/maven-snapshots/"
-    if (isSnapshot.value) Some("central-snapshots" at centralSnapshots)
+    if (isSnapshot.value) Some(Resolver.sonatypeCentralSnapshots)
     else localStaging.value
   },
   credentials ++= {

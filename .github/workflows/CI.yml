@@ -8,7 +8,7 @@ jobs:
       matrix:
         OS: [ubuntu-22.04, windows-2022]
         # Test using the same Scala 3 as used to publish ScalaNative artifacts
-        scala: [2.12.18, 2.13.12, 3.1.3] 
+        scala: [2.12.20, 2.13.17, 3.1.3] 
     steps:
       - uses: actions/checkout@v3
       - uses: coursier/cache-action@v6
@@ -30,7 +30,7 @@ jobs:
 
           function InstallLLVM {
               Write-Host "Attempting to install LLVM (try $($retryCount + 1 - $global:retryAttempt) of $($retryCount + 1))..."
-              choco install llvm --version=17.0.6 --allow-downgrade --force
+              choco install llvm --version=21.1.0 --allow-downgrade --force
           }
 
           # Attempt to install LLVM with retries

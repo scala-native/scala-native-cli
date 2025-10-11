@@ -12,12 +12,16 @@ jobs:
     name: Publish
     runs-on: ubuntu-22.04
     if: github.repository == 'scala-native/scala-native-cli'
+    env:
+      # Present only for repository_dispatch; empty for tag push / manual runs
+      CI_NATIVE_VERSION: ${{ github.event.client_payload.version || '' }}
     steps:
       - uses: actions/checkout@v3
       - uses: coursier/cache-action@v6
       - uses: coursier/setup-action@v1
         with:
           jvm: adopt:8
+          apps: sbt
 
       - name: Setup PGP Key
         run: |
