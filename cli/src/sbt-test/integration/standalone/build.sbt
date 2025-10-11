@@ -49,7 +49,7 @@ runScript := {
         if (ver.startsWith("3."))
           s"https://github.com/scala/scala3/releases/download/$ver/$scalaDir.zip"
         else
-          s"https://github.com/scala/scala/releases/download/scala/v$ver/$scalaDir.zip"
+          s"https://github.com/scala/scala/releases/download/v${ver}/${scalaDir}.zip"
       IO.unzipURL(url(downloadUrl), cacheDir)
     }
     // Make sure we can execute scala/scalac from downloaded distro
