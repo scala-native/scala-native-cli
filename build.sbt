@@ -1,5 +1,9 @@
+import scala.util.Properties.envOrNone
 import scala.scalanative.nir.Proxy.nativeBinaryVersion
 
+val ScalaNativeVersion = envOrNone("CI_NATIVE_VERSION")
+  .filterNot(_.isEmpty)
+  .getOrElse("0.5.8")
 
 val crossScalaVersions212 = (14 to 20).map("2.12." + _)
 val crossScalaVersions213 = (8 to 17).map("2.13." + _)
