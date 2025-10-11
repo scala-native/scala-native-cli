@@ -2,15 +2,15 @@ import scala.scalanative.nir.Proxy.nativeBinaryVersion
 
 
 val crossScalaVersions212 = (14 to 20).map("2.12." + _)
-val crossScalaVersions213 = (8 to 16).map("2.13." + _)
+val crossScalaVersions213 = (8 to 17).map("2.13." + _)
 val crossScalaVersions3 =
   (2 to 3).map("3.1." + _) ++
     (0 to 2).map("3.2." + _) ++
-    (0 to 6).map("3.3." + _) ++
+    (0 to 7).map("3.3." + _) ++
     (0 to 3).map("3.4." + _) ++
     (0 to 2).map("3.5." + _) ++
     (2 to 4).map("3.6." + _) ++
-    (0 to 1).map("3.7." + _) ++
+    (0 to 3).map("3.7." + _) ++
     Nil
 
 val scala2_12 = crossScalaVersions212.last
