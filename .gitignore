@@ -27,3 +27,4 @@ bin/
 
 # vim
 *.swp
+**/*.DS_Store
