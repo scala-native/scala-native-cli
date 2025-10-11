@@ -103,6 +103,7 @@ inThisBuild(
     // Used during the releases
     resolvers += "Sonatype Central Deployments" at "https://central.sonatype.com/api/v1/publisher/deployments/download/",
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
+    resolvers += Resolver.sonatypeCentralSnapshots,
     resolvers += Resolver.mavenCentral,
     resolvers += Resolver.defaultLocal
   )
