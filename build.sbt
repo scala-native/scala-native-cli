@@ -3,7 +3,7 @@ import scala.scalanative.nir.Proxy.nativeBinaryVersion
 
 val ScalaNativeVersion = envOrNone("CI_NATIVE_VERSION")
   .filterNot(_.isEmpty)
-  .getOrElse("0.5.9-20251012-9628085-SNAPSHOT")
+  .getOrElse("0.5.9")
 
 val crossScalaVersions212 = (14 to 20).map("2.12." + _)
 val crossScalaVersions213 = (8 to 17).map("2.13." + _)
