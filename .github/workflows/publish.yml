@@ -37,7 +37,14 @@ jobs:
           SONATYPE_USER: "${{ secrets.SONATYPE_USER }}"
           SONATYPE_PASSWORD: "${{ secrets.SONATYPE_PASSWORD }}"
           PGP_PASSPHRASE: "${{ secrets.PGP_PASSWORD }}"
-        run: sbt "clean;+cli/cliPack; +cli/publishSigned; sonaUpload"
+        run: sbt "clean;+cli/cliPack; +cli/publishSigned"
+      
+      - name: Sonatype upload (only on manual/dispatch)
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+        env: 
+          SONATYPE_USER: "${{ secrets.SONATYPE_USER }}"
+          SONATYPE_PASSWORD: "${{ secrets.SONATYPE_PASSWORD }}"
+        run: sbt "sonaUpload"
 
       - name: Create release artifacts
         run: |
