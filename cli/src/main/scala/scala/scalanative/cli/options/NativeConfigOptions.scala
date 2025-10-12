@@ -25,6 +25,8 @@ case class NativeConfigOptions(
     ltp: List[String] = List.empty,
     linkingOption: List[String] = List.empty,
     compileOption: List[String] = List.empty,
+    cCompileOptions: List[String] = List.empty,
+    cppCompileOptions: List[String] = List.empty,
     targetTriple: Option[String] = None,
     clang: Option[String] = None,
     clangPP: Option[String] = None,
@@ -227,12 +229,43 @@ object NativeConfigOptions {
       .valueName("<passed-option>")
       .optional()
       .unbounded()
-      .action((x, c) =>
+      .action((value, c) =>
         c.copy(nativeConfig =
-          c.nativeConfig.copy(compileOption = c.nativeConfig.compileOption :+ x)
+          c.nativeConfig
+            .copy(cCompileOptions = c.nativeConfig.cCompileOptions :+ value)
         )
       )
       .text("Compilation options passed to LLVM. Multiple can be defined.")
+    parser
+      .opt[String]("c-compile-option")
+      .valueName("<option>")
+      .optional()
+      .unbounded()
+      .abbr("-copt")
+      .text(
+        "Compilation options used when compiling C files only. Multiple can be defined."
+      )
+      .action((value, c) =>
+        c.copy(nativeConfig =
+          c.nativeConfig
+            .copy(cCompileOptions = c.nativeConfig.cCompileOptions :+ value)
+        )
+      )
+    parser
+      .opt[String]("cpp-compile-option")
+      .valueName("<option>")
+      .optional()
+      .unbounded()
+      .abbr("-cppopt")
+      .text(
+        "Compilation options used when compiling C++ files only. Multiple can be defined."
+      )
+      .action((value, c) =>
+        c.copy(nativeConfig =
+          c.nativeConfig
+            .copy(cCompileOptions = c.nativeConfig.cppCompileOptions :+ value)
+        )
+      )
     parser
       .opt[String]("target-triple")
       .valueName("<config-string>")

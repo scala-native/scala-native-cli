@@ -113,6 +113,8 @@ object ConfigConverter {
       .withClang(clang)
       .withClangPP(clangPP)
       .withCompileOptions(options.nativeConfig.compileOption)
+      .withCOptions(options.nativeConfig.cCompileOptions)
+      .withCppOptions(options.nativeConfig.cppCompileOptions)
       .withLinkingOptions(options.nativeConfig.linkingOption)
       .withLinktimeProperties(ltp)
       .withBuildTarget(options.nativeConfig.buildTarget)
