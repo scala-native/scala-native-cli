@@ -229,8 +229,7 @@ lazy val cliPackSettings = Def.settings(
           .withLog(log)
         IvyDependencyResolution(ivyConfig)
       }
-      val dummyModuleName =
-        s"clilibjars-$snVer-$scalaBinVer-" + scalaFullVers.mkString("-")
+      val dummyModuleName = s"clilibjars-$snVer-$scalaBinVer"
       val dummyModuleID = scalaNativeOrg % dummyModuleName % version.value
       val descriptor =
         lm.moduleDescriptor(
