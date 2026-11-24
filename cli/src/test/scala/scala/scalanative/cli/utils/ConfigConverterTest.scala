@@ -290,16 +290,16 @@ class ConfigConverterTest extends AnyFlatSpec {
         statsEnabled = Some(true)
       )
     )
-    val gcConfig = ConfigConverter
+    val parsed = ConfigConverter
       .convert(options, dummyMain, dummyArguments)
       .map(_.config.compilerConfig.garbageCollectorConfig)
       .fold(throw _, identity)
 
-    assert(gcConfig.initialHeapSize.contains(MemorySize.mb(64)))
-    assert(gcConfig.maxHeapSize.contains(MemorySize.gb(2)))
-    assert(gcConfig.syncTimeout.contains(1500.millis))
-    assert(gcConfig.logLevel.contains(LogLevel.Warn))
-    assert(gcConfig.statsEnabled.contains(true))
-    assert(gcConfig.threads.isEmpty)
+    assert(parsed.initialHeapSize.contains(MemorySize.mb(64)))
+    assert(parsed.maxHeapSize.contains(MemorySize.gb(2)))
+    assert(parsed.syncTimeout.contains(1500.millis))
+    assert(parsed.logLevel.contains(LogLevel.Warn))
+    assert(parsed.statsEnabled.contains(true))
+    assert(parsed.threads.isEmpty)
   }
 }
