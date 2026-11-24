@@ -8,5 +8,6 @@ case class LinkerOptions(
     semanticsConfig: SemanticsConfigOptions = SemanticsConfigOptions(),
     sourceLevelDebuggingConfig: SourceLevelDebuggingConfigOptions =
       SourceLevelDebuggingConfigOptions(),
+    gcConfig: GarbageCollectorConfigOptions = GarbageCollectorConfigOptions(),
     verbose: Int = 0
 )

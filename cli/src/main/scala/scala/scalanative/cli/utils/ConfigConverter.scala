@@ -6,6 +6,8 @@ import java.nio.file.Path
 import scala.util.Try
 import scala.scalanative.cli.options._
 import java.io.File
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.FiniteDuration
 
 case class BuildOptions(
     config: Config,
@@ -134,6 +136,9 @@ object ConfigConverter {
       .withSanitizer(
         options.nativeConfig.sanitizer.flatMap(sanitizerFromString)
       )
+      .withGarbageCollectorConfig(
+        generateGarbageCollectorConfig(options.gcConfig)
+      )
   }
 
   private def sanitizerFromString(v: String): Option[Sanitizer] = Seq(
@@ -176,6 +181,35 @@ object ConfigConverter {
     )
     val c3 = options.genLocalVariables.foldLeft(c2)(_.generateLocalVariables(_))
     c3
+  }
+
+  private def generateGarbageCollectorConfig(
+      options: GarbageCollectorConfigOptions
+  ): GarbageCollectorConfig = {
+    val c0 = GarbageCollectorConfig.default
+    val c1 = options.initialHeapSize.foldLeft(c0)(_.withInitialHeapSize(_))
+    val c2 = options.maxHeapSize.foldLeft(c1)(_.withMaxHeapSize(_))
+    val c3 =
+      options.threadHeapBlockSize.foldLeft(c2)(_.withThreadHeapBlockSize(_))
+    val c4 = options.threads.foldLeft(c3)(_.withThreads(_))
+    val c5 = options.timeRatio.foldLeft(c4)(_.withTimeRatio(_))
+    val c6 = options.freeRatio.foldLeft(c5)(_.withFreeRatio(_))
+    val c7 = options.maxFreeRatio.foldLeft(c6)(_.withMaxFreeRatio(_))
+    val c8 = options.syncTimeoutMs.foldLeft(c7)((c, v) =>
+      c.withSyncTimeout(FiniteDuration(v, TimeUnit.MILLISECONDS))
+    )
+    val c9 = options.syncWarningIntervalMs.foldLeft(c8)((c, v) =>
+      c.withSyncWarningInterval(FiniteDuration(v, TimeUnit.MILLISECONDS))
+    )
+    val c10 = options.logLevel.foldLeft(c9)(_.withLogLevel(_))
+    val c11 =
+      options.logFile.foldLeft(c10)((c, v) => c.withLogFile(Paths.get(v)))
+    val c12 =
+      options.statsFile.foldLeft(c11)((c, v) => c.withStatsFile(Paths.get(v)))
+    val c13 = options.statsEnabled.foldLeft(c12)(_.withStatsEnabled(_))
+    val c14 =
+      options.trapBasedYieldPoints.foldLeft(c13)(_.withTrapBasedYieldPoints(_))
+    c14
   }
 
   private def generateConfig(
