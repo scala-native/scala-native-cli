@@ -26,10 +26,16 @@ scalaVersion := {
 runCli := {
   val args = spaceDelimited("<arg>").parsed
   val classpath = (Compile / fullClasspath).value.map(_.data.toString())
-  val cliPath = System.getProperty("scala-native-cli")
+  val cliClasspath =
+    IO.read(file(System.getProperty("scala-native-cli.classpath-file")))
   val proc = new ProcessBuilder()
     .command(
-      List("java", "-jar", cliPath)
+      List(
+        "java",
+        "-cp",
+        cliClasspath,
+        "scala.scalanative.cli.ScalaNativeLd"
+      )
         .++(args.toList)
         .++(classpath.toList)
         .asJava

@@ -1,90 +1,19 @@
 import scala.util.Properties.envOrNone
-import scala.scalanative.nir.Proxy.nativeBinaryVersion
 
 val ScalaNativeVersion = envOrNone("CI_NATIVE_VERSION")
   .filterNot(_.isEmpty)
   .getOrElse("0.5.13")
 
-val crossScalaVersions212 = (17 to 21).map("2.12." + _)
-val crossScalaVersions213 = (9 to 18).map("2.13." + _)
-val crossScalaVersions3 =
-  (2 to 3).map("3.1." + _) ++
-    (0 to 2).map("3.2." + _) ++
-    (0 to 8).map("3.3." + _) ++
-    (0 to 3).map("3.4." + _) ++
-    (0 to 2).map("3.5." + _) ++
-    (2 to 4).map("3.6." + _) ++
-    (0 to 4).map("3.7." + _) ++
-    (0 to 4).map("3.8." + _) ++
-    (0 to 0).map("3.9." + _) ++
-    (0 to 1).map("3.10." + _) ++
-    Nil
-
-val scala2_12 = crossScalaVersions212.last
-val scala2_13 = crossScalaVersions213.last
-val scala3 = crossScalaVersions3.last
+val scala2_12 = "2.12.21"
+val scala2_13 = "2.13.18"
 val scala3PublishVersion = "3.1.3"
 
 sonatypePublishSettings
 
 val publishScalaVersions = Seq(scala2_12, scala2_13, scala3PublishVersion)
 
-def scalaReleasesForBinaryVersion(v: String): Seq[String] = v match {
-  case "2.12" => crossScalaVersions212
-  case "2.13" => crossScalaVersions213
-  case "3"    => crossScalaVersions3
-  case ver =>
-    throw new IllegalArgumentException(
-      s"Unsupported binary scala version `${ver}`"
-    )
-}
-
-def scalaStdlibForBinaryVersion(
-    organization: String,
-    nativeVersion: String,
-    nativeBinaryVersion: String,
-    scalaBinaryVersion: String
-): Seq[ModuleID] = {
-  def artifact(module: String, binV: String, version: String = nativeVersion) =
-    organization % s"${module}_native${nativeBinaryVersion}_$binV" % version
-
-  def crossScalaLibVersion(scalaVersion: String) =
-    s"$scalaVersion+$nativeVersion"
-  def scalalibVersion(scalaBinVersion: String): String = {
-    val scalaVersion = scalaReleasesForBinaryVersion(scalaBinVersion).last
-    crossScalaLibVersion(scalaVersion)
-  }
-  def scalalib(binV: String) = artifact("scalalib", binV, scalalibVersion(binV))
-  val scala3lib =
-    artifact("scala3lib", "3", crossScalaLibVersion(scala3PublishVersion))
-  val crossRuntimeLibraries = List(
-    "nativelib",
-    "clib",
-    "posixlib",
-    "windowslib",
-    "javalib",
-    "auxlib"
-  ).map(artifact(_, scalaBinaryVersion))
-
-  val nonCrossRuntimeLibraries = List("javalib-intf")
-    .map(organization % _ % nativeVersion)
-
-  val runtimeLibraries = crossRuntimeLibraries ++ nonCrossRuntimeLibraries
-
-  scalaBinaryVersion match {
-    case "2.12" | "2.13" => scalalib(scalaBinaryVersion) :: runtimeLibraries
-    case "3"             => scala3lib :: scalalib("2.13") :: runtimeLibraries
-    case ver =>
-      throw new IllegalArgumentException(
-        s"Unsupported binary scala version `${ver}`"
-      )
-  }
-}
-
 val scalaNativeVersion =
   settingKey[String]("Version of Scala Native for which to build to CLI")
-
-val cliAssemblyJarName = settingKey[String]("Name of created assembly jar")
 
 inThisBuild(
   Def.settings(
@@ -113,9 +42,6 @@ inThisBuild(
     resolvers += Resolver.defaultLocal
   )
 )
-val cliPackLibJars =
-  taskKey[Seq[File]]("All libraries packed with packed in cliPack")
-val cliPack = taskKey[File]("Pack the CLI for the current configuration")
 
 lazy val cli = project
   .in(file("cli"))
@@ -138,11 +64,12 @@ lazy val cli = project
       "nativeVersion" -> scalaNativeVersion.value
     ),
     buildInfoPackage := "scala.scalanative.cli.options",
-    cliAssemblyJarName := s"${normalizedName.value}-assembly_${scalaBinaryVersion.value}-${scalaNativeVersion.value}.jar",
-    assembly / assemblyJarName := cliAssemblyJarName.value,
-    assembly / mainClass := (Compile / run / mainClass).value,
-    cliPackSettings,
     publishSettings
+  )
+
+val cliClasspathFile =
+  settingKey[File](
+    "File listing runtime classpath of the CLI for scripted tests"
   )
 
 lazy val cliScriptedTests = project
@@ -150,154 +77,23 @@ lazy val cliScriptedTests = project
   .enablePlugins(ScriptedPlugin)
   .settings(
     sbtTestDirectory := (cli / sourceDirectory).value / "sbt-test",
-    scalaVersion := crossScalaVersions212.last,
-    scriptedLaunchOpts ++= {
-      val jarName = (cli / cliAssemblyJarName).value
-      val cliPath = (cli / Compile / crossTarget).value / jarName
-      val packDir = (cli / cliPack / crossTarget).value
-      Seq(
-        "-Xmx1024M",
-        "-Dplugin.version=" + (cli / scalaNativeVersion).value,
-        "-Dscala.version=" + (cli / scalaVersion).value,
-        "-Dscala-native-cli=" + cliPath,
-        "-Dscala-native-cli-pack=" + packDir
-      )
-    },
+    scalaVersion := scala2_12,
+    cliClasspathFile := target.value / "cli-classpath.txt",
+    scriptedLaunchOpts ++= Seq(
+      "-Xmx1024M",
+      "-Dplugin.version=" + (cli / scalaNativeVersion).value,
+      "-Dscala.version=" + (cli / scalaVersion).value,
+      "-Dscala-native-cli.classpath-file=" + cliClasspathFile.value
+    ),
     scriptedBufferLog := false,
     scriptedDependencies := {
-      scriptedDependencies
-        .dependsOn(
-          cli / assembly,
-          cli / cliPack
-        )
-        .value
+      scriptedDependencies.value
+      val cliClasspath = (cli / Runtime / fullClasspath).value
+        .map(_.data.getAbsolutePath)
+        .mkString(java.io.File.pathSeparator)
+      IO.write(cliClasspathFile.value, cliClasspath)
     }
   )
-
-val nativeSourceExtensions = Set(".c", ".cpp", ".cxx", ".h", ".hpp", ".S")
-val DeduplicateOrRename = new sbtassembly.MergeStrategy {
-  def name: String = "deduplicate-or-rename"
-  def apply(
-      tempDir: java.io.File,
-      path: String,
-      files: Seq[java.io.File]
-  ): Either[String, Seq[(java.io.File, String)]] =
-    MergeStrategy.deduplicate(tempDir, path, files) match {
-      case v @ Right(_) => v
-      case _            => MergeStrategy.rename(tempDir, path, files)
-    }
-}
-
-lazy val cliPackSettings = Def.settings(
-  assemblyMergeStrategy := {
-    val default = assemblyMergeStrategy.value
-    file =>
-      if (nativeSourceExtensions.exists(file.endsWith)) DeduplicateOrRename
-      else if (file.endsWith("scala-native.properties")) MergeStrategy.concat
-      else default(file)
-  },
-  cliPackLibJars := {
-    val s = streams.value
-    val log = s.log
-
-    val scalaNativeOrg = organization.value
-    val scalaBinVer = scalaBinaryVersion.value
-    val snVer = scalaNativeVersion.value
-    val nativeBinVer = nativeBinaryVersion(snVer)
-
-    val scalaFullVers = scalaReleasesForBinaryVersion(scalaBinVer)
-    val cliAssemblyJar = assembly.value
-
-    // Standard modules needed for linking of Scala Native
-    val stdLibModuleIDs =
-      scalaStdlibForBinaryVersion(
-        organization = scalaNativeOrg,
-        nativeVersion = snVer,
-        nativeBinaryVersion = nativeBinVer,
-        scalaBinaryVersion = scalaBinVer
-      )
-
-    val compilerPluginModuleIDs =
-      scalaFullVers.map(v => scalaNativeOrg % s"nscplugin_$v" % snVer)
-    val allModuleIDs = (stdLibModuleIDs ++ compilerPluginModuleIDs).toVector
-    val allModuleIDsIntransitive = allModuleIDs.map(_.intransitive())
-
-    val resolvedLibJars = {
-      val retrieveDir = s.cacheDirectory / "cli-lib-jars"
-      val lm = {
-        import sbt.librarymanagement.ivy._
-        val ivyConfig = InlineIvyConfiguration()
-          .withResolvers((ThisBuild / resolvers).value.toVector)
-          .withLog(log)
-        IvyDependencyResolution(ivyConfig)
-      }
-      val dummyModuleName = s"clilibjars-$snVer-$scalaBinVer"
-      val dummyModuleID = scalaNativeOrg % dummyModuleName % version.value
-      val descriptor =
-        lm.moduleDescriptor(
-          dummyModuleID,
-          allModuleIDsIntransitive,
-          scalaModuleInfo = None
-        )
-      lm
-        .retrieve(descriptor, retrieveDir, log)
-        .fold(
-          { unresolvedWarn => throw unresolvedWarn.resolveException },
-          identity
-        )
-        .distinct
-    }
-
-    cliAssemblyJar +: resolvedLibJars
-  },
-  cliPack / target := crossTarget.value / "pack",
-  cliPack / moduleName :=
-    s"scala-native-cli_${scalaBinaryVersion.value}-${scalaNativeVersion.value}",
-  cliPack / crossTarget := (cliPack / target).value / (cliPack / moduleName).value,
-  cliPack := {
-    val scalaBinVer = scalaBinaryVersion.value
-    val snVer = scalaNativeVersion.value
-
-    val trg = (cliPack / crossTarget).value
-    val trgLib = trg / "lib"
-    val trgBin = trg / "bin"
-
-    if (trg.exists)
-      IO.delete(trg)
-
-    IO.createDirectory(trgLib)
-    val libJars = cliPackLibJars.value
-    for (libJar <- libJars) {
-      IO.copyFile(libJar, trgLib / libJar.getName)
-    }
-
-    IO.createDirectory(trgBin)
-    val scriptDir = (Compile / sourceDirectory).value.getParentFile / "script"
-    for {
-      scriptFile <- IO.listFiles(scriptDir)
-      if !scriptFile.getPath.endsWith("~")
-    } {
-      val content = IO.read(scriptFile)
-      val processedContent = content
-        .replaceAllLiterally("@SCALA_BIN_VER@", scalaBinVer)
-        .replaceAllLiterally("@SCALANATIVE_VER@", snVer)
-        .replaceAllLiterally(
-          "@SCALANATIVE_BIN_VER@",
-          nativeBinaryVersion(snVer)
-        )
-        .replaceAllLiterally(
-          "@SCALALIB_2_13_FOR_3_VER@",
-          crossScalaVersions213.last
-        )
-      val dest = trgBin / scriptFile.getName
-      IO.write(dest, processedContent)
-      if (scriptFile.canExecute)
-        dest.setExecutable( /* executable = */ true, /* ownerOnly = */ false)
-    }
-
-    trg
-  }
-)
 
 lazy val publishSettings = Def.settings(
   Compile / publishArtifact := true,
