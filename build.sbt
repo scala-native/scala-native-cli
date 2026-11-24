@@ -3,19 +3,21 @@ import scala.scalanative.nir.Proxy.nativeBinaryVersion
 
 val ScalaNativeVersion = envOrNone("CI_NATIVE_VERSION")
   .filterNot(_.isEmpty)
-  .getOrElse("0.5.12")
+  .getOrElse("0.5.13")
 
 val crossScalaVersions212 = (17 to 21).map("2.12." + _)
 val crossScalaVersions213 = (9 to 18).map("2.13." + _)
 val crossScalaVersions3 =
   (2 to 3).map("3.1." + _) ++
     (0 to 2).map("3.2." + _) ++
-    (0 to 7).map("3.3." + _) ++
+    (0 to 8).map("3.3." + _) ++
     (0 to 3).map("3.4." + _) ++
     (0 to 2).map("3.5." + _) ++
     (2 to 4).map("3.6." + _) ++
     (0 to 4).map("3.7." + _) ++
-    (0 to 3).map("3.8." + _) ++
+    (0 to 4).map("3.8." + _) ++
+    (0 to 0).map("3.9." + _) ++
+    (0 to 1).map("3.10." + _) ++
     Nil
 
 val scala2_12 = crossScalaVersions212.last

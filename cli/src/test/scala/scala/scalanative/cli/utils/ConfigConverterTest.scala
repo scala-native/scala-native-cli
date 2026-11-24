@@ -272,4 +272,34 @@ class ConfigConverterTest extends AnyFlatSpec {
       .getOrElse(fail(s"failed to convert"))
     assert(resolved.baseName == "my-app")
   }
+
+  it should "set garbage collector config" in {
+    import scala.scalanative.build.MemorySize
+    import scala.scalanative.build.GarbageCollectorConfig.LogLevel
+    import scala.scalanative.cli.options.GarbageCollectorConfigOptions
+    import scala.concurrent.duration._
+
+    val options = dummyLinkerOptions.copy(
+      gcConfig = GarbageCollectorConfigOptions(
+        initialHeapSize =
+          Some(GarbageCollectorConfigOptions.memorySizeRead.reads("64m")),
+        maxHeapSize = Some(MemorySize.gb(2)),
+        syncTimeoutMs = Some(1500),
+        logLevel =
+          Some(GarbageCollectorConfigOptions.logLevelRead.reads("warn")),
+        statsEnabled = Some(true)
+      )
+    )
+    val parsed = ConfigConverter
+      .convert(options, dummyMain, dummyArguments)
+      .map(_.config.compilerConfig.garbageCollectorConfig)
+      .fold(throw _, identity)
+
+    assert(parsed.initialHeapSize.contains(MemorySize.mb(64)))
+    assert(parsed.maxHeapSize.contains(MemorySize.gb(2)))
+    assert(parsed.syncTimeout.contains(1500.millis))
+    assert(parsed.logLevel.contains(LogLevel.Warn))
+    assert(parsed.statsEnabled.contains(true))
+    assert(parsed.threads.isEmpty)
+  }
 }

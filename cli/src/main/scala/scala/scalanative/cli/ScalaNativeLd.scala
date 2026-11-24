@@ -26,6 +26,7 @@ object ScalaNativeLd {
       OptimizerConfigOptions.set(this)
       SemanticsConfigOptions.set(this)
       SourceLevelDebuggingConfigOptions.set(this)
+      GarbageCollectorConfigOptions.set(this)
 
       note("Logger options:")
       opt[Unit]("verbose")
