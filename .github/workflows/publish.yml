@@ -37,7 +37,7 @@ jobs:
           SONATYPE_USER: "${{ secrets.SONATYPE_USER }}"
           SONATYPE_PASSWORD: "${{ secrets.SONATYPE_PASSWORD }}"
           PGP_PASSPHRASE: "${{ secrets.PGP_PASSWORD }}"
-        run: sbt "clean;+cli/cliPack; +cli/publishSigned"
+        run: sbt "clean; +cli/publishSigned"
       
       - name: Sonatype upload (only on manual/dispatch)
         if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
@@ -45,15 +45,3 @@ jobs:
           SONATYPE_USER: "${{ secrets.SONATYPE_USER }}"
           SONATYPE_PASSWORD: "${{ secrets.SONATYPE_PASSWORD }}"
         run: sbt "sonaUpload"
-
-      - name: Create release artifacts
-        run: |
-          version=$(sbt "print cli/version" | grep . | tail -n 2 | head -n 1)
-          echo "This build version: $version"
-          ./scripts/dist.sh $version
-
-      - name: Archive CLI artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: scala-native-cli
-          path: release/
