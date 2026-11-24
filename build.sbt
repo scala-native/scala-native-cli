@@ -10,7 +10,7 @@ val crossScalaVersions213 = (9 to 18).map("2.13." + _)
 val crossScalaVersions3 =
   (2 to 3).map("3.1." + _) ++
     (0 to 2).map("3.2." + _) ++
-    (0 to 9).map("3.3." + _) ++
+    (0 to 8).map("3.3." + _) ++
     (0 to 3).map("3.4." + _) ++
     (0 to 2).map("3.5." + _) ++
     (2 to 4).map("3.6." + _) ++
